@@ -23,6 +23,7 @@ default_args = {
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
     "start_date": days_ago(1),
+    "catchup": True,
     "schedule_interval": "@once",
 }
 
@@ -33,19 +34,19 @@ with DAG(
     concurrency=3
 ) as dag:
 
-    image_suggestion_dir = os.environ.get("IMAGE_SUGGESTION_DIR", f'/home/{getpass.getuser()}/ImageMatching')
+    image_suggestion_dir = os.environ.get("IMAGE_SUGGESTION_DIR", f'/srv/airflow-platform_eng/image-matching/')
     # TODO: Undo hardcode, use airflow generated run id
     run_id = '8419345a-3404-4a7c-93e1-b9e6813706ff'
     print(run_id)
-    snapshot = '2021-04-26'
-    monthly_snapshot = '2021-04'
+    snapshot = '2021-07-26'
+    monthly_snapshot = '2021-07'
     username = getpass.getuser()
     config = configparser.ConfigParser()
 
     # config.read(f'{image_suggestion_dir}/conf/wiki.conf')
     # wikis = config.get("poc_wikis", "target_wikis")
     # wikis = wikis.split()
-    wikis = ['kowiki', 'ptwiki']
+    wikis = ['kowiki', ]
 
     # Create directories for pipeline
     algo_outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/Output')
@@ -72,7 +73,7 @@ with DAG(
     # TODO: Look into SparkSubmitOperator
     generate_placeholder_images = BashOperator(
         task_id='generate_placeholder_images',
-        bash_command=f'spark2-submit --properties-file {spark_config} {image_suggestion_dir}/placeholder_images.py {monthly_snapshot}'
+        bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON=python spark2-submit --archives {image_suggestion_dir}/venv.tar.gz#venv --properties-file {spark_config} {image_suggestion_dir}/python/algorithm.py'
     )
 
     # Update hive external table metadata
@@ -84,22 +85,9 @@ with DAG(
 
 
     for wiki in wikis:
-
-        # Run notebook for wiki
-        algo_run = PapermillOperator(
+        algo_run = BashOperator(
             task_id=f'run_algorithm_for_{wiki}',
-            input_nb=os.path.join(
-                image_suggestion_dir, 'algorithm.ipynb'
-            ),
-            output_nb=os.path.join(
-                algo_outputdir,
-                f"{wiki}_{snapshot}.ipynb",
-            ),
-            parameters={
-                'language': wiki,
-                'snapshot': snapshot,
-                'output_dir': algo_outputdir
-            }
+            bash_command=f'spark2-submit --properties-file {spark_config} {image_suggestion_dir}/python/algorithm.py'
         )
 
         # Sensor for finished algo run
