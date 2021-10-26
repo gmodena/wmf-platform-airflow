@@ -2,7 +2,7 @@
 -- in a format consumable by the APIs.
 --
 -- Run with:
--- hive -hiveconf output_path=<output_path> -hiveconf username=${username} -hiveconf wiki=${wiki} -hiveconf snapshot=${monthly_snapshot} -f export_prod_data.hql
+-- hive -hiveconf output_path=<output_path> -hiveconf username=${username} -hiveconf database=${databasename} -hiveconf wiki=${wiki} -hiveconf snapshot=${monthly_snapshot} -f export_prod_data.hql
 --
 --
 -- Format
@@ -16,7 +16,7 @@
 --   * 2021-03-31: creation.
 --
 -- 
-use ${hiveconf:username};
+use ${hiveconf:database};
 set hivevar:null_value="";
 set hivevar:found_on_delimiter=",";
 set hive.cli.print.header=true;

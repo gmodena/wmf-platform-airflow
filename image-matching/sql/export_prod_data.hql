@@ -4,7 +4,7 @@
 -- Data is collected locally, in TSV format, under <output_path>.
 --
 -- Run with:
--- hive -hiveconf output_path=<output_path> -hiveconf username=${username} -hiveconf wiki=${wiki} -hiveconf snapshot=${monthly_snapshot} -f export_prod_data.hql
+-- hive -hiveconf output_path=<output_path> -hiveconf username=${username} -hiveconf database=<database> -hiveconf wiki=${wiki} -hiveconf snapshot=${monthly_snapshot} -f export_prod_data.hql
 --
 --
 -- Format
@@ -19,7 +19,7 @@
 --   * 2021-03-25: append found_on column
 --   * 2021-03-25: add is_article_page to where clause
 -- 
-use ${hiveconf:username};
+use ${hiveconf:database};
 set hivevar:null_value="";
 set hivevar:found_on_delimiter=",";
 set hive.cli.print.header=true;
@@ -37,4 +37,3 @@ select page_id,
         concat_ws(${found_on_delimiter}, found_on) as found_on
 from imagerec_prod 
 where wiki = '${hiveconf:wiki}' and snapshot='${hiveconf:snapshot}' and is_article_page=true
-
