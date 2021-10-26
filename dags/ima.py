@@ -1,6 +1,6 @@
 # Authors
 # Clara Andrew-Wani 2021 (https://github.com/clarakosi/ImageMatching/blob/airflow/etl.py).
-from datetime import timedelta
+from datetime import timedelta, datetime
 from airflow import DAG
 
 from airflow.operators.bash import BashOperator
@@ -24,7 +24,7 @@ default_args = {
     "retry_delay": timedelta(minutes=5),
     "start_date": days_ago(1),
     "catchup": True,
-    "schedule_interval": "@once",
+    "schedule_interval": None,
 }
 
 with DAG(
@@ -37,16 +37,16 @@ with DAG(
     image_suggestion_dir = os.environ.get("IMAGE_SUGGESTION_DIR", f'/srv/airflow-platform_eng/image-matching/')
     # TODO: Undo hardcode, use airflow generated run id
     run_id = '8419345a-3404-4a7c-93e1-b9e6813706ff'
-    print(run_id)
-    snapshot = '2021-07-26'
-    monthly_snapshot = '2021-07'
+    snapshot = "{{ dag_run.conf['snapshot'] or '2021-09-08' }}"
+    monthly_snapshot = datetime.fromisoformat(snapshot).strftime('%Y-%m')
     username = getpass.getuser()
+    hive_user_db = 'analytics_platform_eng'
     config = configparser.ConfigParser()
-
+    ima_home = '/srv/airflow-platform_eng/image-matching'
     # config.read(f'{image_suggestion_dir}/conf/wiki.conf')
     # wikis = config.get("poc_wikis", "target_wikis")
     # wikis = wikis.split()
-    wikis = ['kowiki', ]
+    wikis = ['kowiki', 'plwiki']
 
     # Create directories for pipeline
     algo_outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/Output')
@@ -73,13 +73,13 @@ with DAG(
     # TODO: Look into SparkSubmitOperator
     generate_placeholder_images = BashOperator(
         task_id='generate_placeholder_images',
-        bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON=python spark2-submit --archives {image_suggestion_dir}/venv.tar.gz#venv --properties-file {spark_config} {image_suggestion_dir}/python/algorithm.py'
+        bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file /srv/airflow-platform_eng/image-matching/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/placeholder_images.py {snapshot}'
     )
 
     # Update hive external table metadata
     update_imagerec_table = BashOperator(
         task_id='update_imagerec_table',
-        bash_command=f'hive -hiveconf username={username} -f {image_suggestion_dir}/ddl/external_imagerec.hql'
+        bash_command=f'hive -hiveconf username={username} -hiveconf database={hive_user_db} -f {image_suggestion_dir}/sql/external_imagerec.hql'
     )
 
 
@@ -87,7 +87,7 @@ with DAG(
     for wiki in wikis:
         algo_run = BashOperator(
             task_id=f'run_algorithm_for_{wiki}',
-            bash_command=f'spark2-submit --properties-file {spark_config} {image_suggestion_dir}/python/algorithm.py'
+            bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}'
         )
 
         # Sensor for finished algo run
@@ -106,8 +106,8 @@ with DAG(
         upload_imagerec_to_hdfs = BashOperator(
             task_id=f'upload_{wiki}_imagerec_to_hdfs',
             bash_command=f'spark2-submit --properties-file {spark_config} --master {spark_master_local} \
-                            --files {image_suggestion_dir}/etl/schema.py \
-                            {image_suggestion_dir}/etl/raw2parquet.py \
+                            --files {image_suggestion_dir}/spark/schema.py \
+                            {image_suggestion_dir}/spark/raw2parquet.py \
                             --wiki {wiki} \
                             --snapshot {monthly_snapshot} \
                             --source file://{algo_outputdir}/{wiki}_{snapshot}_wd_image_candidates.tsv \
@@ -115,16 +115,14 @@ with DAG(
         )
 
         # Link tasks
-        generate_spark_config >> generate_placeholder_images >> algo_run
-        algo_run >> raw_dataset_sensor
-        raw_dataset_sensor >> upload_imagerec_to_hdfs >> update_imagerec_table
+        generate_spark_config >> generate_placeholder_images >> algo_run >> raw_dataset_sensor >> upload_imagerec_to_hdfs >> update_imagerec_table
 
     # Generate production data
     hdfs_imagerec_prod = f'/user/{username}/imagerec_prod'
     generate_production_data = BashOperator(
         task_id='generate_production_data',
-        bash_command=f'spark2-submit --properties-file {spark_config} --files {image_suggestion_dir}/etl/schema.py \
-                    {image_suggestion_dir}/etl/transform.py \
+        bash_command=f'spark2-submit --properties-file {spark_config} --files {image_suggestion_dir}/spark/schema.py \
+                    {image_suggestion_dir}/spark/transform.py \
                     --snapshot {monthly_snapshot} \
                     --source {hdfs_imagerec} \
                     --destination {hdfs_imagerec_prod} \
@@ -134,7 +132,7 @@ with DAG(
     # Update hive external production metadata
     update_imagerec_prod_table = BashOperator(
         task_id='update_imagerec_prod_table',
-        bash_command=f'hive -hiveconf username={username} -f {image_suggestion_dir}/ddl/external_imagerec_prod.hql'
+        bash_command=f'hive -hiveconf username={username} -hiveconf database={hive_user_db} -f {image_suggestion_dir}/sql/external_imagerec_prod.hql'
     )
 
     for wiki in wikis:
@@ -142,7 +140,7 @@ with DAG(
         # Export production datasets
         export_prod_data = BashOperator(
             task_id=f'export_{wiki}_prod_data',
-            bash_command=f'hive -hiveconf username={username} -hiveconf output_path={tsv_tmpdir}/{wiki}_{monthly_snapshot} -hiveconf wiki={wiki} -hiveconf snapshot={monthly_snapshot} -f {image_suggestion_dir}/ddl/export_prod_data.hql > {tsv_tmpdir}/{wiki}_{monthly_snapshot}_header'
+            bash_command=f'hive -hiveconf username={username} -hiveconf database={hive_user_db} -hiveconf output_path={tsv_tmpdir}/{wiki}_{monthly_snapshot} -hiveconf wiki={wiki} -hiveconf snapshot={monthly_snapshot} -f {image_suggestion_dir}/sql/export_prod_data.hql > {tsv_tmpdir}/{wiki}_{monthly_snapshot}_header'
         )
 
         # Sensor for production data

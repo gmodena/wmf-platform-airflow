@@ -1,0 +1,33 @@
+SHELL := /bin/bash
+
+venv := venv
+venv_archive_format := tar.gz
+pip_requirements := requirements.txt
+pip_requirements_test := requirements-test.txt
+conda_python_version = 3.7
+pyspark_version = 2.4.5
+extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
+
+CONDA_CMD := conda config --set pip_interop_enabled True; conda create -n ${venv} python=${conda_python_version}; conda init bash; source ~/.bashrc && conda activate ${venv}
+
+ifneq ($(SKIP_DOCKER),true)
+	DOCKER_IMG := continuumio/miniconda3
+	DOCKER_CMD := docker run -it \
+		--rm \
+		-v /Users/gmodena/repos/gitlab/platform-airflow-dags/image-matching:/root \
+		-e SKIP_DOCKER=true \
+		-w /root ${DOCKER_IMG}
+endif
+
+venv:	${pip_requirements}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+							pip install --extra-index-url ${extra_pypi} -r ${pip_requirements}; \
+							conda deactivate; \
+							conda install conda-pack; \
+							conda-pack -n ${venv} --format ${venv_archive_format}"
+
+test:   ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+					conda install openjdk pyspark==${pyspark_version}; \
+					pip install -r ${pip_requirements_test}; \
+					PYTHONPATH=${PYTHONPATH}:spark/ pytest --cov spark tests/"

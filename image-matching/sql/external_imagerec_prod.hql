@@ -7,8 +7,8 @@
 -- `presto_analytics` database.
 --
 -- Execution
--- hive -hiveconf username=<username> -f external_imagerec_prod.hql
-USE ${hiveconf:username};
+-- hive -hiveconf username=<username> -hiveconf database=<database> -f external_imagerec_prod.hql
+USE ${hiveconf:database};
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `imagerec_prod`(
   `page_id` string,
@@ -28,4 +28,3 @@ LOCATION
 
 -- Update partition metadata
 MSCK REPAIR TABLE `imagerec_prod`;
-
