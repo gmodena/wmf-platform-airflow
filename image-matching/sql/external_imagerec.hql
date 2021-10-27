@@ -7,9 +7,9 @@
 -- `presto_analytics` database.
 --
 -- Execution
--- hive -hiveconf username=<username> -f external_imagerec.hql
+-- hive -hiveconf username=<username> -hiveconf database=<database name> -f external_imagerec.hql
 
-USE ${hiveconf:username};
+USE ${hiveconf:database};
 
 CREATE EXTERNAL TABLE IF NOT EXISTS `imagerec` (
   `pandas_idx` string,
