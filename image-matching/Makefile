@@ -26,6 +26,11 @@ venv:	${pip_requirements}
 							conda install conda-pack; \
 							conda-pack -n ${venv} --format ${venv_archive_format}"
 
+mypy: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+    					pip install -r ${pip_requirements_test}; \
+    					mypy spark"
+
 test:   ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
 					conda install openjdk pyspark==${pyspark_version}; \
