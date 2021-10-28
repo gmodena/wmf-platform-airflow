@@ -6,11 +6,12 @@ Testing Airflow workflows - ensuring your DAGs work before going into production
 DAG integrity test for airflow.
 """
 import glob
-from os import path
 import importlib.util
+from os import path
+
 import pytest
 from airflow import models as airflow_models
-
+from airflow.utils.dag_cycle_tester import check_cycle
 
 DAGS_PATH = glob.glob(path.join(path.dirname(__file__), '..', '..', 'dags', '*.py'))
 
@@ -29,3 +30,8 @@ def test_dag_integrity(dag_path):
     module = _exec_module(dag_name, str(dag_path))
     dag_objects = [var for var in vars(module).values() if isinstance(var, airflow_models.DAG)]
     assert dag_objects
+
+    # Ensure  that all dags are acyclic
+    for dag in dag_objects:
+        check_cycle(dag)
+
