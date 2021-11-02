@@ -1,0 +1,24 @@
+name: build
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.7, ]
+        pet-data-pipeline: ["image-matching", ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: conda-incubator/setup-miniconda@v2
+      with:
+          activate-environment: venv
+          python-version:  ${{ matrix.python-version }}
+          auto-activate-base: false
+    - name: Lint with flake8
+      run: cd ${{ matrix.pet-data-pipeline }}; make lint SKIP_DOCKER=true
+    - name: Test with pytest
+      run: cd ${{ matrix.pet-data-pipeline }}; make test SKIP_DOCKER=true
