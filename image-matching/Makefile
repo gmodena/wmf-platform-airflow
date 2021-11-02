@@ -7,7 +7,7 @@ pip_requirements_test := requirements-test.txt
 conda_python_version = 3.7
 pyspark_version := 2.4.5
 extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
-lint_targets := "spark/ tests/"
+lint_targets := spark/ tests/
 
 CONDA_CMD := conda config --set pip_interop_enabled True; \
 				conda info --envs | grep ${venv} || conda create -n ${venv} python=${conda_python_version};\
@@ -32,11 +32,11 @@ venv:	${pip_requirements}
 
 # TODO(gmodena, 2021-11-01): this conflicts with Makefile layout changes in https://gitlab.wikimedia.org/gmodena/platform-airflow-dags/-/tree/T293382-add-typing
 lint: ${pip_requirements_test}
-	# stop the build if there are Python syntax errors or undefined names in *.py file
-	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+	# stop the build if there are Python syntax errors or undefined names in ${lint_targets} files.
+	# exit-zero treats all errors as warnings.
+	# the GitHub editor is 127 chars wide; set that as ax-line-length.
 	${DOCKER_CMD} bash -c "pip install -r ${pip_requirements_test}; ${CONDA_CMD}; \
-			flake8 *.py ${lint_targets} --count --select=E9,F63,F7,F82 --show-source --statistics; \
-			flake8 *.py ${lint_targets} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics;"
+			flake8 ${lint_targets} --count --exit-zero --max-complexity=10 --select=E9,F63,F7,F82 --max-line-length=127 --show-source --statistics"
 
 test:   ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
