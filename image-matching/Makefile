@@ -9,8 +9,11 @@ pyspark_version := 2.4.5
 extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
 lint_targets := "spark/ tests/"
 
-CONDA_CMD := conda config --set pip_interop_enabled True; conda create -n ${venv} python=${conda_python_version}; conda init bash; source ~/.bashrc && conda activate ${venv}
-
+CONDA_CMD := conda config --set pip_interop_enabled True; \
+				conda info --envs | grep ${venv} || conda create -n ${venv} python=${conda_python_version};\
+				conda init bash; \
+				source ~/.bashrc; \
+				conda activate ${venv}
 ifneq ($(SKIP_DOCKER),true)
 	DOCKER_IMG := continuumio/miniconda3
 	DOCKER_CMD := docker run -it \
@@ -31,7 +34,7 @@ venv:	${pip_requirements}
 lint: ${pip_requirements_test}
 	# stop the build if there are Python syntax errors or undefined names in *.py file
 	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-	${DOCKER_CMD} bash -c "pip install -r ${pip_requirements_test}; \
+	${DOCKER_CMD} bash -c "pip install -r ${pip_requirements_test}; ${CONDA_CMD}; \
 			flake8 *.py ${lint_targets} --count --select=E9,F63,F7,F82 --show-source --statistics; \
 			flake8 *.py ${lint_targets} --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics;"
 
