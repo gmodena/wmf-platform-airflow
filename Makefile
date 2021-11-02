@@ -25,6 +25,9 @@ ima-venv:
 	rm -f ${ima_home}/${ima_venv_archive}
 	make -C ${ima_home} venv
 
+lint:
+	cd ${ima_home}; make lint
+
 test:
 	cd  ${ima_home}; make test
 
