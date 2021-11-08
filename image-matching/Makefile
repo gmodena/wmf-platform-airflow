@@ -32,7 +32,7 @@ venv:	${pip_requirements}
 
 # TODO(gmodena, 2021-11-01): this conflicts with Makefile layout changes in https://gitlab.wikimedia.org/gmodena/platform-airflow-dags/-/tree/T293382-add-typing
 lint: ${pip_requirements_test}
-	# stop the build if there are Python syntax errors or undefined names in ${lint_targets} files.
+	# check for syntax errors or undefined names in ${lint_targets} files.
 	# exit-zero treats all errors as warnings.
 	# the GitHub editor is 127 chars wide; set that as ax-line-length.
 	${DOCKER_CMD} bash -c "pip install -r ${pip_requirements_test}; ${CONDA_CMD}; \
