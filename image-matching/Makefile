@@ -36,7 +36,7 @@ lint: ${pip_requirements_test}
 	# exit-zero treats all errors as warnings.
 	# the GitHub editor is 127 chars wide; set that as ax-line-length.
 	${DOCKER_CMD} bash -c "pip install -r ${pip_requirements_test}; ${CONDA_CMD}; \
-			flake8 ${lint_targets} --count --exit-zero --max-complexity=10 --select=E9,F63,F7,F82 --max-line-length=80 --show-source --statistics"
+			flake8 ${lint_targets} --count --exit-zero --max-complexity=10  --max-line-length=80 --show-source --statistics"
 
 test:   ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
