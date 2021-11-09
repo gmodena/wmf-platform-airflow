@@ -1,3 +1,5 @@
+include Makefile.conda
+
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 short_commit_hash := $(shell git rev-parse --short=8 HEAD)
 airflow_host := an-airflow1003.eqiad.wmnet
@@ -24,6 +26,11 @@ install-dags:
 ima-venv:
 	rm -f ${ima_home}/${ima_venv_archive}
 	make -C ${ima_home} venv
+
+test_dags: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+		pip install -r ${pip_requirements_test}; \
+		python -m pytest tests/"
 
 test:
 	cd  ${ima_home}; make test
