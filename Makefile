@@ -26,7 +26,7 @@ ima-venv:
 	make -C ${ima_home} venv
 
 test:
-	cd  ${ima_home}; make test
+	cd  ${ima_home}; make mypy; make test
 
 archive: ima-venv
 	tar cvz --exclude=".*" -f ${gitlab_package_archive} .

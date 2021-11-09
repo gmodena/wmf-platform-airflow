@@ -2,8 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.types import IntegerType
-from schema import RawDataset
-from instances_to_filter import InstancesToFilter
+from .schema import RawDataset
+from .instances_to_filter import InstancesToFilter
 
 import argparse
 import uuid
