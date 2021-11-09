@@ -2,3 +2,5 @@ pytest==6.2.2
 pytest-spark==0.6.0
 pytest-cov==2.10.1
 flake8==3.8.4
+mypy==0.910
+pyspark-stubs==2.4.0post10
