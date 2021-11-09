@@ -21,5 +21,7 @@ jobs:
           auto-activate-base: false
     - name: Lint with flake8
       run: cd ${{ matrix.pet-data-pipeline }}; make lint SKIP_DOCKER=true
+    - name: Type check with mypy
+      run: cd ${{ matrix.pet-data-pipeline }}; make mypy SKIP_DOCKER=true
     - name: Test with pytest
       run: cd ${{ matrix.pet-data-pipeline }}; make test SKIP_DOCKER=true
