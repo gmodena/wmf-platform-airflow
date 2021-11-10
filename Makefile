@@ -27,6 +27,9 @@ ima-venv:
 	rm -f ${ima_home}/${ima_venv_archive}
 	make -C ${ima_home} venv
 
+lint:
+	cd ${ima_home}; make lint
+
 test_dags: ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
 		pip install -r ${pip_requirements_test}; \
