@@ -10,19 +10,25 @@ extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simp
 
 CONDA_CMD := conda config --set pip_interop_enabled True; conda create -n ${venv} python=${conda_python_version}; conda init bash; source ~/.bashrc && conda activate ${venv}
 
+DOCKER_IMG := platform/miniconda3
+DOCKERFILE := ../Dockerfile.conda
+
 ifneq ($(SKIP_DOCKER),true)
     CURRENT_DIR := $(shell pwd)
-	DOCKER_IMG := platform/miniconda3 
 	DOCKER_CMD := docker run -it \
 		--rm \
 		-v ${CURRENT_DIR}:/root \
 		-e SKIP_DOCKER=true \
 		-w /root ${DOCKER_IMG}
+lint: docker-conda
+test: docker-conda
+mypy: docker-conda
+venv: docker-conda
 endif
 
 docker-conda:
-	docker build -t platform/miniconda3 .
-
+	docker build -t ${DOCKER_IMG} -f ${DOCKERFILE} .
+	
 venv:	${pip_requirements}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
 							pip install --extra-index-url ${extra_pypi} -r ${pip_requirements}; \
@@ -30,8 +36,11 @@ venv:	${pip_requirements}
 							conda install conda-pack; \
 							conda-pack -n ${venv} --format ${venv_archive_format}"
 
-test:   ${pip_requirements_test}
-	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
-					pip install -r ${pip_requirements_test}; \
-					python -m pytest tests/"
+mypy: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "tox -e mypy"
 
+lint: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "tox -e flake8"
+ 
+test: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "tox -e pytest"
