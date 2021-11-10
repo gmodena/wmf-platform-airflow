@@ -1,6 +1,6 @@
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
-from schema import CsvDataset
+from .schema import CsvDataset
 
 import argparse
 
@@ -29,7 +29,7 @@ if __name__ == "__main__":
 
     csv_df = (
         (
-            spark.read.options(delimiter="\t", header=False, escape='"')
+            spark.read.options(delimiter="\t", header="false", escape='"')
             .schema(CsvDataset.schema)
             .csv(source)
         )

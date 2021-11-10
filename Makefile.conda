@@ -1,0 +1,37 @@
+SHELL := /bin/bash
+
+venv := venv
+venv_archive_format := tar.gz
+pip_requirements := requirements.txt
+pip_requirements_test := requirements-test.txt
+conda_python_version = 3.7
+pyspark_version = 2.4.5
+extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
+
+CONDA_CMD := conda config --set pip_interop_enabled True; conda create -n ${venv} python=${conda_python_version}; conda init bash; source ~/.bashrc && conda activate ${venv}
+
+ifneq ($(SKIP_DOCKER),true)
+    CURRENT_DIR := $(shell pwd)
+	DOCKER_IMG := platform/miniconda3 
+	DOCKER_CMD := docker run -it \
+		--rm \
+		-v ${CURRENT_DIR}:/root \
+		-e SKIP_DOCKER=true \
+		-w /root ${DOCKER_IMG}
+endif
+
+docker-conda:
+	docker build -t platform/miniconda3 .
+
+venv:	${pip_requirements}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+							pip install --extra-index-url ${extra_pypi} -r ${pip_requirements}; \
+							conda deactivate; \
+							conda install conda-pack; \
+							conda-pack -n ${venv} --format ${venv_archive_format}"
+
+test:   ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+					pip install -r ${pip_requirements_test}; \
+					python -m pytest tests/"
+

@@ -1,3 +1,5 @@
+include Makefile.conda
+
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 short_commit_hash := $(shell git rev-parse --short=8 HEAD)
 airflow_host := an-airflow1003.eqiad.wmnet
@@ -28,8 +30,13 @@ ima-venv:
 lint:
 	cd ${ima_home}; make lint
 
+test_dags: ${pip_requirements_test}
+	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
+		pip install -r ${pip_requirements_test}; \
+		python -m pytest tests/"
+
 test:
-	cd  ${ima_home}; make test
+	cd  ${ima_home}; make mypy; make test
 
 archive: ima-venv
 	tar cvz --exclude=".*" -f ${gitlab_package_archive} .
