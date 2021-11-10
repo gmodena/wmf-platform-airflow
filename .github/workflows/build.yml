@@ -14,11 +14,10 @@ jobs:
         pet-data-pipeline: ["image-matching", ]
     steps:
     - uses: actions/checkout@v2
-    - uses: conda-incubator/setup-miniconda@v2
+    - name: Set up Python 3.7
+      uses: actions/setup-python@v2
       with:
-          miniconda-version: "py37_4.10.3"
-          auto-activate-base: true
-          python-version: ${{ matrix.python-version }}
+        python-version: 3.7
     - name: Install tox
       run: pip install tox
     - name: Lint with flake8
