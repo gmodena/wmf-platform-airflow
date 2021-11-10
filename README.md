@@ -1,4 +1,6 @@
+[![Project Status: Concept <E2><80><93> Minimal or no implementation has been done yet, or the repository is only intended to be a limited example, demo, or proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
 [![build](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml/badge.svg)](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml)
+
 
 # platform-airflow-dags
 
@@ -38,7 +40,7 @@ make deploy-local-build
 
 # CI & code checks
 
-We favour test-driven development with `pytest`, lint with `flake8` and type check with `mypy`We encourage, but not yet enforce, the use of `isort` and `black` for formatting code. We log errors and information messages with the Python logging library.
+We favour test-driven development with `pytest`, lint with `flake8` and type check with `mypy`. We encourage, but not yet enforce, the use of `isort` and `black` for formatting code. We log errors and information messages with the Python logging library.
 
 ## Code checks
 
