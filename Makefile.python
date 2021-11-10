@@ -8,14 +8,18 @@ conda_python_version = 3.7
 pyspark_version = 2.4.5
 extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
 
-CONDA_CMD := conda config --set pip_interop_enabled True; conda create -n ${venv} python=${conda_python_version}; conda init bash; source ~/.bashrc && conda activate ${venv}
+CONDA_CMD := conda config --set pip_interop_enabled True; \
+	conda create -n ${venv} python=${conda_python_version}; \
+	conda init bash; \
+	source ~/.bashrc; \
+	conda activate ${venv}
 
 DOCKER_IMG := platform/miniconda3
 DOCKERFILE := ../Dockerfile.conda
 
 ifneq ($(SKIP_DOCKER),true)
-    CURRENT_DIR := $(shell pwd)
-	DOCKER_CMD := docker run -it \
+CURRENT_DIR := $(shell pwd)
+DOCKER_CMD := docker run -it \
 		--rm \
 		-v ${CURRENT_DIR}:/root \
 		-e SKIP_DOCKER=true \
