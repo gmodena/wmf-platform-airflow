@@ -16,8 +16,7 @@ jobs:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
     - name: Install tox
-      run: conda install python=3.7
-      run: pip install tox
+      run: conda install python=3.7; pip install tox
     - name: Lint with flake8
       run: cd ${{ matrix.pet-data-pipeline }}; make lint SKIP_DOCKER=true
     - name: Type check with mypy
