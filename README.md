@@ -5,7 +5,7 @@
 
 # platform-airflow-dags
 
-This repo contains data pipelines operationalised by the Generated Datasets Platform team.
+This repo contains data pipelines operationalised by the Generated Data Platform team.
 You can reach out to us at
 * TODO: Add wikitech url
 * TODO: Add irc channel
