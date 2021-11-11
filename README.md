@@ -7,9 +7,9 @@
 
 This repo contains data pipelines operationalised by the Generated Datasets Platform team.
 You can reach out to us at
-* <Add wikitech url>
-* <Add irc channel?>
-* Slack: `#data-platform-value-stream`.
+* TODO: Add wikitech url
+* TODO: Add irc channel
+* Slack: [#data-platform-value-stream](https://wikimedia.slack.com/archives/C02BB8L2S5R).
 
 # Data pipelines
 > […] a pipeline, also known as a data pipeline, is a set of data processing elements connected in series, where the output of one element is the input of the next one. The elements of a pipeline are often executed in parallel or in time-sliced fashion. […] > https://en.wikipedia.org/wiki/Pipeline_(computing)

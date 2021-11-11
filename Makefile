@@ -1,4 +1,4 @@
-include Makefile.conda
+include Makefile.python
 
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 short_commit_hash := $(shell git rev-parse --short=8 HEAD)
@@ -16,6 +16,10 @@ platform_airflow_dags_url := ${gitlab_ci_api_root}/projects/${gitlab_project_id}
 ima_home := image-matching
 ima_venv_archive := venv.tar.gz
 
+ifneq ($(SKIP_DOCKER),true)
+test_dags: docker-conda
+endif
+
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
 install-dags:
 	ssh ${airflow_host} 'sudo -u ${airflow_user} rm -rf ${airflow_home}/image-matching/venv'
@@ -31,9 +35,7 @@ lint:
 	cd ${ima_home}; make lint
 
 test_dags: ${pip_requirements_test}
-	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
-		pip install -r ${pip_requirements_test}; \
-		python -m pytest tests/"
+	${DOCKER_CMD} bash -c "tox -e dags" 
 
 test:
 	cd  ${ima_home}; make mypy; make test

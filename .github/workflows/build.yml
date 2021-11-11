@@ -3,8 +3,7 @@ name: build
 on: [push]
 
 jobs:
-  build:
-
+  codechecks:
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
@@ -28,3 +27,18 @@ jobs:
     - name: Test with pytest
       if: always()
       run: cd ${{ matrix.pet-data-pipeline }}; make test SKIP_DOCKER=true
+  dag-validation:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.7"
+    - name: Install tox
+      run: pip install tox
+    - name: Test with pytest
+      if: always()
+      run: make test_dags SKIP_DOCKER=true
+
