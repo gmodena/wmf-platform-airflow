@@ -30,13 +30,12 @@ jobs:
   dag-validation:
     runs-on: ubuntu-latest
     continue-on-error: true
-    python-version: ["3.7", ]
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
+    - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: "3.7"
     - name: Install tox
       run: pip install tox
     - name: Test with pytest
