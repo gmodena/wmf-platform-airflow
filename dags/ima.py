@@ -49,12 +49,8 @@ with DAG(
     wikis = ['kowiki', 'plwiki']
 
     # Create directories for pipeline
-    algo_outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/Output')
     outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/imagerec_prod_{snapshot}')
     tsv_tmpdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/tmp')
-
-    if not os.path.exists(algo_outputdir):
-        os.makedirs(algo_outputdir)
 
     if not os.path.exists(outputdir):
         os.makedirs(outputdir)
@@ -90,32 +86,8 @@ with DAG(
             bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}'
         )
 
-        # Sensor for finished algo run
-        raw_dataset_sensor = FileSensor(
-            task_id=f'wait_for_{wiki}_raw_dataset',
-            poke_interval=60,
-            filepath=os.path.join(
-                algo_outputdir, f'{wiki}_{snapshot}_wd_image_candidates.tsv'
-            ),
-            dag=dag,
-        )
-
-        # Upload raw data to HDFS
-        hdfs_imagerec = f'/user/{username}/imagerec'
-        spark_master_local = 'local[2]'
-        upload_imagerec_to_hdfs = BashOperator(
-            task_id=f'upload_{wiki}_imagerec_to_hdfs',
-            bash_command=f'spark2-submit --properties-file {spark_config} --master {spark_master_local} \
-                            --files {image_suggestion_dir}/spark/schema.py \
-                            {image_suggestion_dir}/spark/raw2parquet.py \
-                            --wiki {wiki} \
-                            --snapshot {monthly_snapshot} \
-                            --source file://{algo_outputdir}/{wiki}_{snapshot}_wd_image_candidates.tsv \
-                            --destination {hdfs_imagerec}/'
-        )
-
         # Link tasks
-        generate_spark_config >> generate_placeholder_images >> algo_run >> raw_dataset_sensor >> upload_imagerec_to_hdfs >> update_imagerec_table
+        generate_spark_config >> generate_placeholder_images >> algo_run >> update_imagerec_table
 
     # Generate production data
     hdfs_imagerec_prod = f'/user/{username}/imagerec_prod'
