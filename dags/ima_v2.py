@@ -10,7 +10,8 @@ Data pipelines for algo dags are made of three steps:
 A DAG implementing the factory woul have to provide configs for these three step (scripts to execute, parameters, I/O path),
 following a template given in a JobConfig data class.
 
-Theese configs are passed to the generate_dag() factory method, that will instantiate a dag.
+These configs are passed to the generate_dag() factory method, that will instantiate a dag. Under the hood, will create
+this
 """
 
 from datetime import datetime
@@ -23,7 +24,7 @@ import yaml
 with open("imag_v2_config.yaml") as config_file:
     config = yaml.load(config_file)
 
-    monthly_snapshot: datetime.fromisoformat(config.snapshot).strftime("%Y-%m")
+    monthly_snapshot = datetime.fromisoformat(config.snapshot).strftime("%Y-%m")
     username = getpass.getuser()
 
     # Setup Spar virtual dependencies and configuration file.
@@ -55,7 +56,8 @@ with open("imag_v2_config.yaml") as config_file:
         job=f"{config.image_suggestion_dir}/sql/export_prod_data.hql",
         job_args=f"-hiveconf username={username} -hiveconf database={config.hive_user_db} -hiveconf output_path=/user/{username}/imagerec_export/{wiki}_{monthly_snapshot} -hiveconf wiki={wiki} -hiveconf snapshot={monthly_snapshot}",
         input_path=f"/user/{username}/imagerec_prod",
-        output_path=f"/user/{username}/imagerec_export/{wiki}_{monthly_snapshot}")
+        output_path=f"/user/{username}/imagerec_export/{wiki}_{monthly_snapshot}",
+    )
 
     # Instantiate a DAG  the follows the "algo run" pattern.
     generate_dag(
