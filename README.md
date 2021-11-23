@@ -22,6 +22,13 @@ A Generated Datasets Platform pipeline is made up by two components:
 
 Data pipelines are executed on Hadoop. Elastic compute is provided by Spark (jobs are deployed in cluster mode). Scheduling and orchestration is delegated to Apache Airflow. Currently we support Python based projects. Scala support is planned.
 
+## Create  a new data pipeline
+
+A new datapipline can be created with
+```
+make datapipeline
+```
+
 ## Repo layout
 
 This repository follows a [monorepo](https://en.wikipedia.org/wiki/Monorepo) strategy. Its structure matches the layout of `AIRFLOW_HOME` on the [an-airflow1003.eqiad.wmnet](https://wikitech.wikimedia.org/wiki/Analytics/Systems/Airflow#platform_eng) airflow instance.

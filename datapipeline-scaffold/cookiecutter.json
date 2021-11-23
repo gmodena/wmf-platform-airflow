@@ -1,0 +1,4 @@
+{
+    "project_name": "generated data pipeline",
+    "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-') }}"
+}

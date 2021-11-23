@@ -60,3 +60,5 @@ deploy-gitlab-build:
 	scp ${gitlab_package_archive} ${airflow_host}:
 	make install-dags
 
+datapipeline:
+	${DOCKER_CMD} bash -c "cookiecutter datapipeline-scaffold"
