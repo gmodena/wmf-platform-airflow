@@ -15,7 +15,7 @@ CONDA_CMD := conda config --set pip_interop_enabled True; \
 	conda activate ${venv}
 
 DOCKER_IMG := platform/miniconda3
-DOCKERFILE := ../Dockerfile.python
+DOCKERFILE := Dockerfile.python
 
 ifneq ($(SKIP_DOCKER),true)
 CURRENT_DIR := $(shell pwd)

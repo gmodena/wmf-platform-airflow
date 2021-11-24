@@ -17,7 +17,9 @@ ima_home := image-matching
 ima_venv_archive := venv.tar.gz
 
 ifneq ($(SKIP_DOCKER),true)
-test_dags: docker-conda
+lint-all: docker-conda
+test-all: docker-conda
+test-dags: docker-conda
 endif
 
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
@@ -34,8 +36,12 @@ ima-venv:
 lint-all:
 	cd ${ima_home}; make lint
 
-test_dags: ${pip_requirements_test}
+test-dags: ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "tox -e dags" 
+
+test_dags:
+	echo "WARNING: deprecated. Use make test-dags instead"
+	make test-dags
 
 test-all:
 	cd ${ima_home}; make test
