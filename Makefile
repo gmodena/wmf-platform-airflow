@@ -29,16 +29,16 @@ install-dags:
 
 ima-venv:
 	rm -f ${ima_home}/${ima_venv_archive}
-	make -C ${ima_home} venv
+	cd ${ima_home}; make venv
 
-lint:
+lint-all:
 	cd ${ima_home}; make lint
 
 test_dags: ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "tox -e dags" 
 
-test:
-	cd  ${ima_home}; make mypy; make test
+test-all:
+	cd ${ima_home}; make test
 
 archive: ima-venv
 	tar cvz --exclude=".*" -f ${gitlab_package_archive} .
@@ -50,7 +50,7 @@ publish: archive
 	#curl -v --header "PRIVATE-TOKEN: ${GITLAB_PRIVATE_TOKEN}" --upload-file /tmp/platform-airflow-dags.tar.gz "${gitlab_ci_api_root}/projects/${gitlab_project_id}/packages/generic/platform-airflow-dags/${branch}-${short_commit_hash}/${gitlab_package_archive}"
 
 # Test, assemble venvs, generate an archive locally and ship it to the airflow worker.
-deploy-local-build: test archive
+deploy-local-build: test-all archive
 	scp ${gitlab_package_archive} ${airflow_host}:
 	make install-dags
 
