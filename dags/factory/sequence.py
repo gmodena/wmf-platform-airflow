@@ -1,10 +1,10 @@
 import getpass
 import os
-import yaml
 from dataclasses import dataclass
 from datetime import timedelta
 from typing import Dict, List, Optional
 
+import yaml
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
@@ -14,12 +14,14 @@ with open("config/sequence.yaml") as config_file:
     config = yaml.safe_load(config_file)
 
     default_args = {
-        "owner": config.get('owner', getpass.getuser()),  # User running the job (default_user: airflow)
-        "run_as_owner": config.get('run_as_owner', True),
-        "depends_on_past": config.get('depends_on_past', False),
-        "retries": config.get('retries', 1),
-        "retry_delay": timedelta(minutes=int(config.get('retry_delay', 5))),
-        "catchup": config.get('catchup', False),
+        "owner": config.get(
+            "owner", getpass.getuser()
+        ),  # User running the job (default_user: airflow)
+        "run_as_owner": config.get("run_as_owner", True),
+        "depends_on_past": config.get("depends_on_past", False),
+        "retries": config.get("retries", 1),
+        "retry_delay": timedelta(minutes=int(config.get("retry_delay", 5))),
+        "catchup": config.get("catchup", False),
     }
 
 
@@ -27,14 +29,34 @@ with open("config/sequence.yaml") as config_file:
 class PySparkConfig:
     pipeline: str
     pipeline_home: str = "/srv/airflow-platform_eng"
+
     def venv(self) -> str:
-        return f"{self.pipeline}/pyspark/venv"
+        return os.path.join(self.pipeline_home, self.pipeline, "pyspark", "venv")
 
     def venv_archive(self) -> str:
-        return f"{self.pipeline}/pyspark/venv.tar.gz#venv"
+        return os.path.join(
+            self.pipeline_home, self.pipeline, "pyspark", "venv.tar.gz#venv"
+        )
 
-    def properties_file(self) -> str:
-        return f"{self.pipeline}/conf/spark.properties"
+    def properties(self) -> str:
+        conf = ""
+        properties_file = os.path.join(
+            self.pipeline_home, self.pipeline, "conf", "spark.properties"
+        )
+
+        if os.path.exists(properties_file):
+            # ConfigParser does not support header-less properties files.
+            # This use case is simple and specific enough to roll our own parsing
+            # logic, rather than mangling spark.properties or installing external deps.
+            with open(properties_file) as infile:
+                props = infile.readlines()
+                for line in props:
+                    line = line.strip()
+                    if line and not line.startswith("#"):
+                        key, value = line.split("\t")
+                        conf += f"--conf '{key}={value}' "
+        return conf
+
 
 @dataclass
 class PySparkTask:
@@ -43,29 +65,24 @@ class PySparkTask:
     output_path: str
     config: PySparkConfig
     pyspark_main_args: Optional[str] = ""
-    
+
     def operator(self) -> BashOperator:
         return BashOperator(
-                task_id = os.path.basename(self.main), 
-                bash_command = f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit --properties-file "
-                         f"{self.config.properties_file()} --archives {self.config.venv_archive()} "
-                         f"{self.main} {self.pyspark_main_args} "
-                         f"{self.input_path} {self.output_path} ",
+            task_id=os.path.basename(self.main),
+            bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit "
+            f"{self.config.properties()} --archives {self.config.venv_archive()} "
+            f"{self.main} {self.pyspark_main_args} "
+            f"{self.input_path} {self.output_path} ",
         )
 
 
-
-def generate_dag(
-        pipeline: str,
-        tasks: List[BaseOperator],
-        dag_args: dict
-):
+def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict):
     default_args.update(dag_args)
 
     with DAG(
         dag_id=f"{pipeline}",
         tags=[pipeline, "generated-data-platform", "devel"],
-        default_args=default_args
+        default_args=default_args,
     ) as dag:
         for task in tasks:
             task
