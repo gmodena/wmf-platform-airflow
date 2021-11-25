@@ -39,7 +39,6 @@ venv:	${pip_requirements}
 							conda deactivate; \
 							conda install conda-pack; \
 							conda-pack -n ${venv} --format ${venv_archive_format}"
-
 mypy: ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "tox -e mypy"
 

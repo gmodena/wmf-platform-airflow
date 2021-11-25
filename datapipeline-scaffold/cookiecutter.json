@@ -1,4 +1,5 @@
 {
-    "project_name": "generated data pipeline",
-    "project_slug": "{{ cookiecutter.project_name|lower|replace(' ', '-') }}"
+    "pipeline_name": "Generated Data Pipeline",
+    "pipeline_slug": "{{ cookiecutter.pipeline_name.lower().replace(' ', '_') }}",
+    "pipeline_owner": "Some Dataset Producer"
 }

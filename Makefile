@@ -20,6 +20,7 @@ ifneq ($(SKIP_DOCKER),true)
 lint-all: docker-conda
 test-all: docker-conda
 test-dags: docker-conda
+datapipeline: docker-conda
 endif
 
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
@@ -81,4 +82,5 @@ deploy-gitlab-build:
 	make install-dags
 
 datapipeline:
-	${DOCKER_CMD} bash -c "cookiecutter datapipeline-scaffold"
+	@clear
+	@${DOCKER_CMD} bash -c "cookiecutter datapipeline-scaffold"
