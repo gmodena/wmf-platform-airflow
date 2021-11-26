@@ -13,6 +13,7 @@ In order to get the best out of the template:
 * Don't remove any lines from the tox.ini file we provide.
 * Don't commit data to git.
 * Don't commit any credentials or local configuration files.
+* Convert Jupyter Notebooks you'd like to schedule to a script with `jupyter nbconvert --to script notebook.ipynb`.
 * Install Docker or Docker Desktop on your development machine.
 
 You can read more about our guidelines, codechecks and contribution model
@@ -20,7 +21,8 @@ in our [documentation]().
 
 # Content
 
-- `conf` contains job specific config files.
+- `conf` contains Spark job specific config files. `spark.properties` will let you define your cluster topology and
+  desired resources. We default to a [yarn-regular](https://wikitech.wikimedia.org/wiki/Analytics/Systems/Cluster/Spark#Spark_Resource_Settings) sized cluster.
 - `pyspark` contains Spark based data processing tasks.
 - `sql` contains SQL/HQL based data processing tasks.
 - `test` contains a test suite

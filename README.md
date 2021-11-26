@@ -11,6 +11,10 @@ You can reach out to us at
 * TODO: Add irc channel
 * Slack: [#data-platform-value-stream](https://wikimedia.slack.com/archives/C02BB8L2S5R).
 
+# Requirements
+
+Tools provided by this repository require [Docker](https://www.docker.com/). 
+
 # Data pipelines
 > […] a pipeline, also known as a data pipeline, is a set of data processing elements connected in series, where the output of one element is the input of the next one. The elements of a pipeline are often executed in parallel or in time-sliced fashion. […] > https://en.wikipedia.org/wiki/Pipeline_(computing)
 
@@ -22,11 +26,29 @@ A Generated Datasets Platform pipeline is made up by two components:
 
 Data pipelines are executed on Hadoop. Elastic compute is provided by Spark (jobs are deployed in cluster mode). Scheduling and orchestration is delegated to Apache Airflow. Currently we support Python based projects. Scala support is planned.
 
-## Create  a new data pipeline
+## Create a new data pipeline
 
-A new datapipline can be created with
+Clone this repo and create a dev branch with:
+
+```
+git@gitlab.wikimedia.org:gmodena/platform-airflow-dags.git
+cd platform-airflow-dag
+git checkout -b your_data_pipeline_branchname
+```
+
+A new datapipline can be created with:
 ```
 make datapipeline
+```
+
+This will generate a new directory for pipeline code under:
+```bash
+your_data_pipeline
+```
+
+And install an Airflow dag template under
+```
+dags/your_data_pipeline_dag.py
 ```
 
 ## Repo layout
