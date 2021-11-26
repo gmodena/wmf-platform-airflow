@@ -9,6 +9,7 @@ from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.dates import days_ago
+from airflow.utils.helpers import chain
 
 with open("config/sequence.yaml") as config_file:
     config = yaml.safe_load(config_file)
@@ -84,6 +85,5 @@ def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict):
         tags=[pipeline, "generated-data-platform", "devel"],
         default_args=default_args,
     ) as dag:
-        for task in tasks:
-            task
+        chain(*tasks)
     return dag
