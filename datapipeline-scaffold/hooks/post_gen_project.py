@@ -12,3 +12,5 @@ shutil.move(
     os.path.join(source_dir, "dags", "config", "{{cookiecutter.pipeline_slug}}.yaml"),
     os.path.join(dags_dir, "config"),
 )
+
+shutil.rmtree(os.path.join("../", "{{cookiecutter.pipeline_slug}}", "dags"))
