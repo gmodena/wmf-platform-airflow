@@ -7,7 +7,7 @@ class ParquetDataset:
         .add("item_id", StringType(), True)
         .add("page_id", LongType(), True)
         .add("page_title", StringType(), True)
-        .add("top_candidates", ArrayType(MapType(StringType(), StringType(), True), True), False)
+        .add("top_candidates", ArrayType(MapType(StringType(), StringType(), True), True), True)
         .add("instance_of", StringType(), True)
         .add("wiki_db", StringType(), True)
         .add("snapshot", StringType(), True)
