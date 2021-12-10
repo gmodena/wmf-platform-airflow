@@ -32,6 +32,15 @@ class PySparkConfig:
     pipeline: str
     pipeline_home: str = "/srv/airflow-platform_eng"
 
+    def _load_properties(self, props: List[str]) -> str:
+        conf = ""
+        for line in props:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                key, value = line.split("\t")
+                conf += f"--conf '{key}={value}' "
+        return conf
+
     def venv(self) -> str:
         return os.path.join(self.pipeline_home, self.pipeline, "pyspark", "venv")
 
@@ -51,12 +60,7 @@ class PySparkConfig:
             # This use case is simple and specific enough to roll our own parsing
             # logic, rather than mangling spark.properties or installing external deps.
             with open(properties_file) as infile:
-                props = infile.readlines()
-                for line in props:
-                    line = line.strip()
-                    if line and not line.startswith("#"):
-                        key, value = line.split("\t")
-                        conf += f"--conf '{key}={value}' "
+                conf = self._load_properties(infile.readlines())
         return conf
 
 
