@@ -5,12 +5,16 @@ from datetime import timedelta
 from typing import List, Optional
 
 import yaml
+import logging
+
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.helpers import chain
 from pathlib import Path
 
+
+LOGGER = logging.getLogger("airflow.task")
 config_path = os.path.dirname(Path(__file__))
 with open(os.path.join(config_path, '../', 'config', 'sequence.yaml')) as config_file:
     config = yaml.safe_load(config_file)
@@ -61,6 +65,8 @@ class PySparkConfig:
             # logic, rather than mangling spark.properties or installing external deps.
             with open(properties_file) as infile:
                 conf = self._load_properties(infile.readlines())
+        else:
+            LOGGER.warn("spark.properties not found at {properties_file}.")
         return conf
 
 
