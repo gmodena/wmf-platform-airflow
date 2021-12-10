@@ -9,8 +9,10 @@ from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.helpers import chain
+from pathlib import Path
 
-with open("config/sequence.yaml") as config_file:
+config_path = os.path.dirname(Path(__file__))
+with open(os.path.join(config_path, '../', 'config', 'sequence.yaml')) as config_file:
     config = yaml.safe_load(config_file)
 
     default_args = {
