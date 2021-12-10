@@ -42,7 +42,7 @@ class PySparkConfig:
             if line and not line.startswith("#"):
                 key, value = line.split("\t")
                 conf += f"--conf '{key}={value}' "
-        return conf
+        return conf.strip()
 
     def venv(self) -> str:
         return os.path.join(self.pipeline_home, self.pipeline, "pyspark", "venv")
@@ -65,7 +65,7 @@ class PySparkConfig:
             with open(properties_file) as infile:
                 conf = self._load_properties(infile.readlines())
         else:
-            LOGGER.warn("spark.properties not found at {properties_file}.")
+            LOGGER.warning("spark.properties not found at {properties_file}.")
         return conf
 
 
@@ -87,7 +87,7 @@ class PySparkTask:
         )
 
 
-def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict):
+def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict = {}):
     default_args.update(dag_args)
 
     with DAG(
