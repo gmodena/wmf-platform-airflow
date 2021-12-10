@@ -2,13 +2,12 @@ import getpass
 import os
 from dataclasses import dataclass
 from datetime import timedelta
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import yaml
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
-from airflow.utils.dates import days_ago
 from airflow.utils.helpers import chain
 
 with open("config/sequence.yaml") as config_file:
