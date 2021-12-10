@@ -1,22 +1,21 @@
 import getpass
+import logging
 import os
 from dataclasses import dataclass
 from datetime import timedelta
+from pathlib import Path
 from typing import List, Optional
 
 import yaml
-import logging
 
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
 from airflow.utils.helpers import chain
-from pathlib import Path
-
 
 LOGGER = logging.getLogger("airflow.task")
 config_path = os.path.dirname(Path(__file__))
-with open(os.path.join(config_path, '../', 'config', 'sequence.yaml')) as config_file:
+with open(os.path.join(config_path, "../", "config", "sequence.yaml")) as config_file:
     config = yaml.safe_load(config_file)
 
     default_args = {
