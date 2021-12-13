@@ -3,13 +3,13 @@
 from datetime import timedelta, datetime
 from airflow import DAG
 
+from airflow.exceptions import AirflowFailException
 from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
 from airflow.utils.dates import days_ago
 from airflow.contrib.sensors.file_sensor import FileSensor
-from airflow.operators.papermill_operator import PapermillOperator
 
 import os
-import uuid
 import getpass
 import configparser
 
@@ -34,11 +34,11 @@ with DAG(
     concurrency=3
 ) as dag:
 
-    image_suggestion_dir = os.environ.get("IMAGE_SUGGESTION_DIR", f'/srv/airflow-platform_eng/image-matching/')
+    image_suggestion_dir = os.environ.get("IMAGE_SUGGESTION_DIR", '/srv/airflow-platform_eng/image-matching')
     # TODO: Undo hardcode, use airflow generated run id
     run_id = '8419345a-3404-4a7c-93e1-b9e6813706ff'
-    snapshot = "{{ dag_run.conf['snapshot'] or '2021-09-08' }}"
-    monthly_snapshot = datetime.fromisoformat(snapshot).strftime('%Y-%m')
+    snapshot = "{{ dag_run.conf['snapshot'] }}"
+    monthly_snapshot = "{{ macros.ds_format(dag_run.conf['snapshot'], '%Y-%m-%d', '%Y-%m') }}"
     username = getpass.getuser()
     hive_user_db = 'analytics_platform_eng'
     config = configparser.ConfigParser()
@@ -48,19 +48,28 @@ with DAG(
     # wikis = wikis.split()
     wikis = ['kowiki', 'plwiki']
 
+    # Validate snapshot date passed
+    def validate_date(**kwargs):
+        date = kwargs['templates_dict']['snapshot']
+        try:
+            datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
+            raise AirflowFailException(ValueError)
+
+    validate_snapshot_date = PythonOperator(
+        task_id='validate_snapshot_date',
+        python_callable=validate_date,
+        templates_dict={'snapshot': snapshot}
+    )
+
     # Create directories for pipeline
-    algo_outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/Output')
     outputdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/imagerec_prod_{snapshot}')
     tsv_tmpdir = os.path.join(image_suggestion_dir, f'runs/{run_id}/tmp')
 
-    if not os.path.exists(algo_outputdir):
-        os.makedirs(algo_outputdir)
-
-    if not os.path.exists(outputdir):
-        os.makedirs(outputdir)
-
-    if not os.path.exists(tsv_tmpdir):
-        os.makedirs(tsv_tmpdir)
+    create_directories = BashOperator(
+        task_id='create_output_directories',
+        bash_command=f'mkdir -p {outputdir} {tsv_tmpdir}'
+    )
 
     # Generate spark config
     spark_config = f'{image_suggestion_dir}/runs/{run_id}/regular.spark.properties'
@@ -90,34 +99,11 @@ with DAG(
             bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}'
         )
 
-        # Sensor for finished algo run
-        raw_dataset_sensor = FileSensor(
-            task_id=f'wait_for_{wiki}_raw_dataset',
-            poke_interval=60,
-            filepath=os.path.join(
-                algo_outputdir, f'{wiki}_{snapshot}_wd_image_candidates.tsv'
-            ),
-            dag=dag,
-        )
-
-        # Upload raw data to HDFS
-        hdfs_imagerec = f'/user/{username}/imagerec'
-        spark_master_local = 'local[2]'
-        upload_imagerec_to_hdfs = BashOperator(
-            task_id=f'upload_{wiki}_imagerec_to_hdfs',
-            bash_command=f'spark2-submit --properties-file {spark_config} --master {spark_master_local} \
-                            --files {image_suggestion_dir}/spark/schema.py \
-                            {image_suggestion_dir}/spark/raw2parquet.py \
-                            --wiki {wiki} \
-                            --snapshot {monthly_snapshot} \
-                            --source file://{algo_outputdir}/{wiki}_{snapshot}_wd_image_candidates.tsv \
-                            --destination {hdfs_imagerec}/'
-        )
-
         # Link tasks
-        generate_spark_config >> generate_placeholder_images >> algo_run >> raw_dataset_sensor >> upload_imagerec_to_hdfs >> update_imagerec_table
+        validate_snapshot_date >> create_directories >> generate_spark_config >> generate_placeholder_images >> algo_run >> update_imagerec_table
 
     # Generate production data
+    hdfs_imagerec = f'/user/{username}/imagerec'
     hdfs_imagerec_prod = f'/user/{username}/imagerec_prod'
     generate_production_data = BashOperator(
         task_id='generate_production_data',

@@ -1,8 +1,9 @@
 include Makefile.python
 
 # A space (" ") separated list of projects to build and deploy.
-TARGETS = "image-matching "
+TARGETS = "image-matching"
 
+# Define Gitlab project paths
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 short_commit_hash := $(shell git rev-parse --short=8 HEAD)
 airflow_host := an-airflow1003.eqiad.wmnet
@@ -23,19 +24,19 @@ test-dags: docker-conda
 datapipeline: docker-conda
 endif
 
-
+venv_archive := ${venv}.${venv_archive_format} # inherited from Makefile.python
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
 install-dags:
 	ssh ${airflow_host} 'sudo -u ${airflow_user} rm -r ${airflow_home}/dags/*'
 	for target in $(shell echo ${TARGETS}); do \
-		ssh ${airflow_host} 'sudo -u ${airflow_user} mkdir ${airflow_home}/$$target'; \
-		ssh ${airflow_host} 'sudo -u ${airflow_user} mkdir -p ${airflow_home}/$$target/venv'; \
+		ssh ${airflow_host} "sudo -u ${airflow_user} rm -r ${airflow_home}/$$target"; \
+		ssh ${airflow_host} "sudo -u ${airflow_user} mkdir -p ${airflow_home}/$$target/venv"; \
 	done
-	ssh ${airflow_host} 'sudo -u ${airflow_user} tar xzf ${gitlab_package_archive} -C ${airflow_home}';
+	ssh ${airflow_host} "sudo -u ${airflow_user} tar xzf ${gitlab_package_archive} -C ${airflow_home}";
 	for target in $(shell echo ${TARGETS}); do \
-		ssh ${airflow_host} 'sudo -u ${airflow_user} tar xvzf ${airflow_home}/$$target/${venv_archive} -C ${airflow_home}/image-matching/venv'; \
+		ssh ${airflow_host} "sudo -u ${airflow_user} tar xvzf ${airflow_home}/$$target/${venv_archive} -C ${airflow_home}/$$target/venv"; \
 	done
-	ssh ${airflow_host} 'rm ${gitlab_package_archive}'
+	ssh ${airflow_host} "rm ${gitlab_package_archive}"
 
 ## Code checks
 # Run linting on all projects
@@ -64,8 +65,6 @@ test_dags:
 	echo "WARNING: deprecated. Use make test-dags instead"
 	make test-dags
 
-
-
 ## Package dags and project dependencies.
 archive:
 	# Build a virtual environment for a datapipeline project.
@@ -73,7 +72,9 @@ archive:
 		rm -f $$target/${venv_archive}; \
 		make venv -C $$target; \
 	done
-	tar cvz --exclude='.[^/]*' --exclude='__pycache__' --exclude='venv/'  -f platform-airflow-dags.tar.gz *
+	# Archive the projects and virtual environments. 
+	# This is the artifact that will be deployed on ${gitlab_package_archive}.
+	tar cvz --exclude='.[^/]*' --exclude='datapipeline-scaffold/*' --exclude='__pycache__' --exclude='venv/*' --exclude=${gitlab_package_archive} -f ${gitlab_package_archive} dags $(shell echo ${TARGETS})
 
 # Publish an artifact to a Gitlab Generic Archive registry using a private token.
 publish: archive
