@@ -1,5 +1,8 @@
 include Makefile.python
 
+# A space (" ") separated list of projects to build and deploy.
+TARGETS = "image-matching "
+
 branch := $(shell git rev-parse --abbrev-ref HEAD)
 short_commit_hash := $(shell git rev-parse --short=8 HEAD)
 airflow_host := an-airflow1003.eqiad.wmnet
@@ -13,9 +16,6 @@ gitlab_ci_api_root := https://gitlab.wikimedia.org/api/v4
 gitlab_package_archive := platform-airflow-dags.tar.gz
 platform_airflow_dags_url := ${gitlab_ci_api_root}/projects/${gitlab_project_id}/packages/generic/${gitlab_project_name}/${gitlab_package_version}/${gitlab_package_archive}
 
-ima_home := image-matching
-ima_venv_archive := venv.tar.gz
-
 ifneq ($(SKIP_DOCKER),true)
 lint-all: docker-conda
 test-all: docker-conda
@@ -23,24 +23,40 @@ test-dags: docker-conda
 datapipeline: docker-conda
 endif
 
+
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
 install-dags:
 	ssh ${airflow_host} 'sudo -u ${airflow_user} rm -r ${airflow_home}/dags/*'
-	ssh ${airflow_host} 'sudo -u ${airflow_user} rm -r ${airflow_home}/image-matching'
-	ssh ${airflow_host} 'sudo -u ${airflow_user} tar xzf ${gitlab_package_archive} -C ${airflow_home}'
-	ssh ${airflow_host} 'sudo -u ${airflow_user} mkdir ${airflow_home}/image-matching/venv'
-	ssh ${airflow_host} 'sudo -u ${airflow_user} tar xvzf ${airflow_home}/image-matching/venv.tar.gz -C ${airflow_home}/image-matching/venv'
+	for target in $(shell echo ${TARGETS}); do \
+		ssh ${airflow_host} 'sudo -u ${airflow_user} mkdir ${airflow_home}/$$target'; \
+		ssh ${airflow_host} 'sudo -u ${airflow_user} mkdir -p ${airflow_home}/$$target/venv'; \
+	done
+	ssh ${airflow_host} 'sudo -u ${airflow_user} tar xzf ${gitlab_package_archive} -C ${airflow_home}';
+	for target in $(shell echo ${TARGETS}); do \
+		ssh ${airflow_host} 'sudo -u ${airflow_user} tar xvzf ${airflow_home}/$$target/${venv_archive} -C ${airflow_home}/image-matching/venv'; \
+	done
 	ssh ${airflow_host} 'rm ${gitlab_package_archive}'
 
-ima-venv:
-	rm -f ${ima_home}/${ima_venv_archive}
-	cd ${ima_home}; make venv
-
 ## Code checks
-
+# Run linting on all projects
 lint-all:
-	cd ${ima_home}; make lint
+	for target in $(shell echo ${TARGETS}); do \
+		make lint -C $$target; \
+	done
 
+# Run the tests suite on all projects
+test-all:
+	for target in $(shell echo ${TARGETS}); do \
+		make test -C $$target; \
+	done
+
+# Run compile-time type checks on all projects.
+mypy-all:
+	for target in $(shell echo ${TARGETS}); do \
+		make mypy -C $$target; \
+	done
+
+# Run the top level airflow dags test suite
 test-dags: ${pip_requirements_test}
 	${DOCKER_CMD} bash -c "tox -e dags" 
 
@@ -48,12 +64,15 @@ test_dags:
 	echo "WARNING: deprecated. Use make test-dags instead"
 	make test-dags
 
-test-all:
-	cd ${ima_home}; make test
+
 
 ## Package dags and project dependencies.
-
-archive: ima-venv
+archive:
+	# Build a virtual environment for a datapipeline project.
+	for target in $(shell echo ${TARGETS}); do \
+		rm -f $$target/${venv_archive}; \
+		make venv -C $$target; \
+	done
 	tar cvz --exclude='.[^/]*' --exclude='__pycache__' --exclude='venv/'  -f platform-airflow-dags.tar.gz *
 
 # Publish an artifact to a Gitlab Generic Archive registry using a private token.
@@ -81,6 +100,9 @@ deploy-gitlab-build:
 	scp ${gitlab_package_archive} ${airflow_host}:
 	make install-dags
 
+## Scaffolding
+# Create a new datapipeline template
 datapipeline:
 	@clear
 	@${DOCKER_CMD} bash -c "cookiecutter datapipeline-scaffold"
+
