@@ -2,8 +2,8 @@ from pyspark.sql import SparkSession
 from pyspark.sql import Column, DataFrame
 from pyspark.sql import functions as F
 from pyspark.sql.types import IntegerType
-from .schema import RawDataset
-from .instances_to_filter import InstancesToFilter
+from schema import RawDataset
+from instances_to_filter import InstancesToFilter
 
 import argparse
 import uuid
@@ -62,11 +62,11 @@ class ImageRecommendation:
 
     def transform(self) -> DataFrame:
         with_recommendations = (
-            self.dataFrame.where(~F.col("top_candidates").isNull())
+            self.dataFrame.where((F.size(F.col("top_candidates")) > 0) | F.col("top_candidates").isNull())
             .withColumn(
                 "data",
                 F.explode(
-                    F.from_json("top_candidates", RawDataset.top_candidates_schema)
+                    "top_candidates"
                 ),
             )
             .select("*", "data.image", "data.rating", "data.note")
@@ -87,7 +87,7 @@ class ImageRecommendation:
             )
         )
         without_recommendations = (
-            self.dataFrame.where(F.col("top_candidates").isNull())
+            self.dataFrame.where(F.size(F.col("top_candidates")) == 0)
             .withColumnRenamed("wiki_db", "wiki")
             .withColumn("image_id", F.lit(None))
             .withColumn("confidence_rating", F.lit(None))
