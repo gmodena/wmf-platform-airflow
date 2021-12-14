@@ -7,4 +7,4 @@ lint:
 	make lint -C pyspark
 
 mypy:
-	make lint -C pyspak
+	make mypy -C pyspak
