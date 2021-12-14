@@ -1,0 +1,9 @@
+# A boilerplate requirements file for
+# {{cookiecutter.pipeline_name}}
+
+# Install project inside the active virtual
+# environment. The virtual environment archive will be
+# shipped to Spark driver and executor
+# This will ensure that local dependencies 
+# and imports can be resolved.
+-e .

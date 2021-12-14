@@ -1,5 +1,5 @@
 {
     "pipeline_name": "Generated Data Pipeline",
-    "pipeline_slug": "{{ cookiecutter.pipeline_name.lower().replace(' ', '_') }}",
-    "pipeline_owner": "Some Dataset Producer"
-}
+    "pipeline_directory": "{{ cookiecutter.pipeline_name.lower().replace('-', '_').replace(' ', '_') }}",
+    "pipeline_owner": "Some Dataset Producer",
+
