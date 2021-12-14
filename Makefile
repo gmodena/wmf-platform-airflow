@@ -26,6 +26,10 @@ endif
 
 venv_archive := ${venv}.${venv_archive_format} # inherited from Makefile.python
 # Runs some command to setup DAGs, venvs and project code on an airflow worker.
+# TODO(gmodena): WARNING this command could leave the remote directory in a dirty state.
+# Project directories in ${airflow_home} are removed based on tagets declared in ${TARGET}.
+# If a pipeline is removed from the ${TARGETS} variable, its matching remote 
+# path won't be deleted. Proper cleanup requires manual intervention.
 install-dags:
 	ssh ${airflow_host} 'sudo -u ${airflow_user} rm -r ${airflow_home}/dags/*'
 	for target in $(shell echo ${TARGETS}); do \
