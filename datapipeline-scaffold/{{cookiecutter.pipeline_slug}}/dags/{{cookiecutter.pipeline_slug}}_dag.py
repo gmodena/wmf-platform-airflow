@@ -29,12 +29,12 @@ with open("config/{{cookiecutter.pipeline_slug}}.yaml") as config_file:
     # PySparkConfig will take care of configuring PYSPARK_SUBMIT_ARGS, as well as Python dependencies.
     pyspark_config = PySparkConfig(
         pipeline="{{cookiecutter.pipeline_slug}}",
-        pipeline_home=f"config['pipeline_home'",
+        pipeline_home=config["pipeline_home"],
     )
 
     # A script we want to run.
     pyspark_script = os.path.join(
-        f"{config['pipeline_home']}", "/pyspark/", "src", "transform.py"
+        config["pipeline_home"], "/pyspark/", "src", "transform.py"
     )
     t1 = PySparkTask(
         main=pyspark_script,
