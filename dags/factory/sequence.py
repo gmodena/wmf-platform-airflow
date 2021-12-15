@@ -99,7 +99,6 @@ class PySparkConfig:
 class PySparkTask:
     """
     PySparkTask is a dataclass that represents a spark-submit command.
-    configuration.
     """
 
     main: str
