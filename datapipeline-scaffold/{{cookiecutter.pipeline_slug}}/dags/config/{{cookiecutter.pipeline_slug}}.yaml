@@ -1,3 +1,0 @@
-pipeline_home: "/srv/airflow-platform_eng/{{cookiecutter.pipeline_slug}}"
-start_date: null                                                                                    
-schedule_interval: null
