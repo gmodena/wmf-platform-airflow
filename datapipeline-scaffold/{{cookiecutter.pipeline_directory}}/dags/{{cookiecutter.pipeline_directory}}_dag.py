@@ -31,15 +31,24 @@ with open("config/{{cookiecutter.pipeline_directory}}.yaml") as config_file:
         pipeline="{{cookiecutter.pipeline_directory}}",
         pipeline_home=config["pipeline_home"],
     )
-
-    # A script we want to run.
+    # A spark job is a script that takes some input
+    # and produces some output.
+    # The script should be provided in your project src module.
     pyspark_script = os.path.join(
         config["pipeline_home"], "/pyspark/", "src", "transform.py"
     )
+    # You should specify the HDFS directory
+    # where a task input data resides.
+    input_path = "/path/to/hdfs/input"
+    # You should specify the HDFS directory
+    # where a task output data should be saved.
+    output_path = "/path/to/hdfs/output"
+    # PySparkTask is a helper class that
+    # helps you submit a pyspark_script to the cluster.
     t1 = PySparkTask(
         main=pyspark_script,
-        input_path="/path/to/hdfs/input",
-        output_path="/path/to/hdfs/output",
+        input_path=input_path,
+        output_path=output_path,
         config=pyspark_config,
     ).operator()
 
