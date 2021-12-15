@@ -18,6 +18,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install tox
       run: pip install tox
+    - name: Install openjdk
+      run: conda install openjdk=8.0.152
     - name: Lint with flake8
       run: cd ${{ matrix.pet-data-pipeline }}; make lint SKIP_DOCKER=true
     - name: Type check with mypy
