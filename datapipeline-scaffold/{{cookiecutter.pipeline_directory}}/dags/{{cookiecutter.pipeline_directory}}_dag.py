@@ -6,12 +6,17 @@ A boilerplate module to help you get started with running the
 import getpass
 import os.path
 from datetime import datetime
+from pathlib import Path
 
 import yaml
 from airflow.utils.dates import days_ago
 from factory.sequence import PySparkConfig, PySparkTask, generate_dag
 
-with open("config/{{cookiecutter.pipeline_directory}}.yaml") as config_file:
+config_path = os.path.dirname(Path(__file__))
+pipeline_config = os.path.join(
+    config_path, "config", "{{cookiecutter.pipeline_directory}}.yaml"
+)
+with open(pipeline_config) as config_file:
     # {{cookiecutter.pipeline_directory}}_config.yaml contains airflow
     # and project specific settings.
     config = yaml.safe_load(config_file)
