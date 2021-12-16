@@ -15,8 +15,7 @@ import os.path
 from pathlib import Path
 
 import yaml
-from factory.sequence import (PySparkTask, SparkConfig, SparkSqlTask,
-                              generate_dag)
+from factory.sequence import PySparkTask, SparkConfig, SparkSqlTask, generate_dag
 
 from airflow.utils.dates import days_ago
 
@@ -47,18 +46,22 @@ with open(pipeline_config) as config_file:
         pipeline="{{cookiecutter.pipeline_directory}}",
         pipeline_home=config["pipeline_home"],
     )
+
     # A spark job is a script that takes some input
     # and produces some output.
     # The script should be provided in your project src module.
     pyspark_script = os.path.join(
         config["pipeline_home"], "/pyspark/", "src", "transform.py"
     )
+
     # You should specify the HDFS directory
     # where a task input data resides.
     input_path = "/path/to/hdfs/input"
+
     # You should specify the HDFS directory
     # where a task output data should be saved.
     output_path = "/path/to/hdfs/output"
+
     # PySparkTask is a helper class that
     # helps you submit a pyspark_script to the cluster.
     t1 = PySparkTask(
@@ -74,8 +77,8 @@ with open(pipeline_config) as config_file:
 
     # The execution order of t1 and t2 can be defined by appending them
     # to a tasks list.
-
     tasks = [t1, t2]
+
     # generate_dag() will chain and execute tasks in sequence (t1 >> t2).
     # The generated dag is appended to the global dags namespace.
     globals()["{{cookiecutter.pipeline_directory}}"] = generate_dag(
