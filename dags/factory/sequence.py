@@ -1,3 +1,4 @@
+import abc
 import getpass
 import logging
 import os
@@ -7,6 +8,7 @@ from pathlib import Path
 from typing import List, Optional
 
 import yaml
+
 from airflow import DAG
 from airflow.models import BaseOperator
 from airflow.operators.bash import BashOperator
@@ -14,25 +16,31 @@ from airflow.utils.helpers import chain
 
 LOGGER = logging.getLogger("airflow.task")
 config_path = os.path.dirname(Path(__file__))
-with open(os.path.join(config_path, "../", "config", "sequence.yaml")) as config_file:
-    config = yaml.safe_load(config_file)
 
-    default_args = {
-        "owner": config.get(
-            "owner", getpass.getuser()
-        ),  # User running the job (default_user: airflow)
-        "run_as_owner": config.get("run_as_owner", True),
-        "depends_on_past": config.get("depends_on_past", False),
-        "retries": config.get("retries", 1),
-        "retry_delay": timedelta(minutes=int(config.get("retry_delay", 5))),
-        "catchup": config.get("catchup", False),
-    }
+
+def _load_config() -> dict:
+    with open(
+        os.path.join(config_path, "../", "config", "sequence.yaml")
+    ) as config_file:
+        config = yaml.safe_load(config_file)
+
+        default_args = {
+            "owner": config.get(
+                "owner", getpass.getuser()
+            ),  # User running the job (default_user: airflow)
+            "run_as_owner": config.get("run_as_owner", True),
+            "depends_on_past": config.get("depends_on_past", False),
+            "retries": config.get("retries", 1),
+            "retry_delay": timedelta(minutes=int(config.get("retry_delay", 5))),
+            "catchup": config.get("catchup", False),
+        }
+    return default_args
 
 
 @dataclass
-class PySparkConfig:
+class SparkConfig:
     """
-    PySparkConfig is a dataclass that reprsent a set of Spark
+    SparkConfig is a dataclass that reprsent a set of Spark
     configuration settings. It provides boilerplate to:
      - ovverride default-spark.conf with a user-provided properties file.
      - configure a Python virtual env.
@@ -95,8 +103,21 @@ class PySparkConfig:
         return conf
 
 
+class Task(abc.ABC):
+    """
+    Task interface for configuration dataclasses
+    """
+    @abc.abstractmethod
+    def operator(self, dag: Optional[DAG] = None) -> BaseOperator:
+        """
+        :param dag: an Airflow dag.
+        :returns an Airflow operator that executes the task
+        """
+        pass
+
+
 @dataclass
-class PySparkTask:
+class PySparkTask(Task):
     """
     PySparkTask is a dataclass that represents a spark-submit command.
     """
@@ -104,23 +125,67 @@ class PySparkTask:
     main: str
     input_path: str
     output_path: str
-    config: PySparkConfig
+    config: SparkConfig
     pyspark_main_args: Optional[str] = ""
 
-    def operator(self) -> BashOperator:
+    def operator(self, dag: Optional[DAG] = None) -> BashOperator:
         """
+        TODO(gmodena): once available, this method should return
+        an instance of SparkSubmitOperator.
+
+        :param dag: an Airflow dag.
         :returns: a BashOperator that runs spark-submit.
         """
         return BashOperator(
             task_id=os.path.basename(self.main),
-            bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit "
-            f"{self.config.properties()} --archives {self.config.venv_archive()} "
+            bash_command=f"PYSPARK_PYTHON=./venv/bin/python "
+            f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit "
+            f"{self.config.properties()} "
+            f"--archives {self.config.venv_archive()} "
             f"{self.main} {self.pyspark_main_args} "
             f"{self.input_path} {self.output_path} ",
         )
 
 
-def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict = {}) -> DAG:
+@dataclass
+class SparkSqlTask(Task):
+    """
+    SparkSqlTask is a dataclass that represents a spark-sql command.
+
+    :param hiveconf_args: a string of "--hiveconf <property=value>" parameters.
+    :param config: a spark config.
+    :param filename: path to a file containing an HQL query.
+    """
+
+    config: SparkConfig
+    filename: Path
+    hiveconf_args: Optional[str] = ""
+
+    def operator(self, dag: Optional[DAG] = None) -> BashOperator:
+        """
+        Executes a Hive/SparkSQL query.
+
+        Cluster deploy mode is not applicable to Spark SQL shell.
+        bash_command will enforce --deploy-mode client.
+
+        TODO(gmodena): once available, this method should return
+        an instance of SparkSqlOperator.
+
+
+        :param dag: an Airflow dag.
+        :returns: a BashOperator that runs spark-sql.
+        """
+        return BashOperator(
+            task_id=os.path.basename(self.filename),
+            bash_command=f"spark2-sql "
+            f"{self.config.properties()} "
+            "--deploy-mode client "
+            f"{self.hiveconf_args} "
+            f"-f {self.filename} ",
+        )
+
+
+def generate_dag(pipeline: str, tasks: List[Task], dag_args: dict = {}) -> DAG:
     """
     Chains together a List of operators to form an Airflow DAG.
     This is equivalent to:
@@ -131,12 +196,13 @@ def generate_dag(pipeline: str, tasks: List[BaseOperator], dag_args: dict = {}) 
     :param dag_args: a dictionary of Airflow configuration arguments.
     :retruns dag: an Airflow DAG.
     """
+    default_args = _load_config()
     default_args.update(dag_args)
-
     with DAG(
         dag_id=f"{pipeline}",
         tags=[pipeline, "generated-data-platform", "devel"],
         default_args=default_args,
     ) as dag:
-        chain(*tasks)
+        operators = [t.operator(dag=dag) for t in tasks]
+        chain(*operators)
     return dag
