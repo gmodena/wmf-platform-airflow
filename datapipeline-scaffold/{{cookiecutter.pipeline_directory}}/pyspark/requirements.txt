@@ -6,4 +6,4 @@
 # shipped to Spark driver and executor
 # This will ensure that local dependencies 
 # and imports can be resolved.
--e .
+.
