@@ -199,7 +199,7 @@ def generate_dag(pipeline: str, tasks: List[Task], dag_args: dict = {}) -> DAG:
     default_args = _load_config()
     default_args.update(dag_args)
     with DAG(
-        dag_id=f"{pipeline}",
+        dag_id=pipeline,
         tags=[pipeline, "generated-data-platform", "devel"],
         default_args=default_args,
     ) as dag:
