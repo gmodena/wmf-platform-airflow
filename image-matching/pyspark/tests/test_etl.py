@@ -1,4 +1,4 @@
-from spark.transform import ImageRecommendation
+from src.transform import ImageRecommendation
 from pyspark.sql import functions as F
 from pyspark import Row
 from conftest import assert_shallow_equals
