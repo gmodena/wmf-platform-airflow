@@ -40,9 +40,9 @@ def _load_config() -> dict:
 @dataclass
 class SparkConfig:
     """
-    SparkConfig is a dataclass that reprsent a set of Spark
+    SparkConfig is a dataclass that represents a set of Spark
     configuration settings. It provides boilerplate to:
-     - ovverride default-spark.conf with a user-provided properties file.
+     - override default-spark.conf with a user-provided properties file.
      - configure a Python virtual env.
     """
 
