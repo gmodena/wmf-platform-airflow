@@ -107,8 +107,10 @@ with DAG(
     hdfs_imagerec_prod = f'/user/{username}/imagerec_prod'
     generate_production_data = BashOperator(
         task_id='generate_production_data',
-        bash_command=f'spark2-submit --properties-file {spark_config} --files {image_suggestion_dir}/spark/schema.py \
-                    {image_suggestion_dir}/spark/transform.py \
+        bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python \
+                spark2-submit --properties-file {spark_config} \
+                    --archives {ima_home}/venv.tar.gz#venv \
+                    {image_suggestion_dir}/pyspark/src/transform.py \
                     --snapshot {monthly_snapshot} \
                     --source {hdfs_imagerec} \
                     --destination {hdfs_imagerec_prod} \
