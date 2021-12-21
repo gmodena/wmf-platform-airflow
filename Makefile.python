@@ -16,6 +16,7 @@ CONDA_CMD := conda config --set pip_interop_enabled True; \
 
 DOCKER_IMG := platform/miniconda3
 DOCKERFILE := Dockerfile.python
+DOCKER_PLATFORM := linux/amd64
 
 ifneq ($(SKIP_DOCKER),true)
 CURRENT_DIR := $(shell pwd)
@@ -31,7 +32,7 @@ venv: docker-conda
 endif
 
 docker-conda:
-	docker buildx build --platform linux/amd64 -t ${DOCKER_IMG} -f ${DOCKERFILE} .
+	docker buildx build --platform ${DOCKER_PLATFORM} -t ${DOCKER_IMG} -f ${DOCKERFILE} .
 	
 venv:	${pip_requirements}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
