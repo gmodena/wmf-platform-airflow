@@ -142,6 +142,8 @@ class PySparkTask(Task):
             f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit "
             f"{self.config.properties()} "
             f"--archives {self.config.venv_archive()} "
+            "--conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' "
+            "--conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' "
             f"{self.main} {self.pyspark_main_args} "
             f"{self.input_path} {self.output_path} ",
         )

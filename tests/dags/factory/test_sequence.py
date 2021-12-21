@@ -82,6 +82,8 @@ def test_pyspark_task(mocker):
             "--conf 'spark.master=yarn' ",
             "--conf 'spark.driver.memory=2g' ",
             "--archives pipeline_home/test_pipeline/pyspark/venv.tar.gz#venv ",
+            "--conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' ",
+            "--conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' ",
             "somejob.py  ",
             "/path/to/hdfs/input ",
             "/path/to/hdfs/output ",
