@@ -51,7 +51,7 @@ with open(pipeline_config) as config_file:
     # and produces some output.
     # The script should be provided in your project src module.
     pyspark_script = os.path.join(
-        config["pipeline_home"], "/pyspark/", "src", "transform.py"
+        config["pipeline_home"], "pyspark/", "src", "transform.py"
     )
 
     # You should specify the HDFS directory
