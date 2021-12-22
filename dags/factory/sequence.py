@@ -67,16 +67,16 @@ class SparkConfig:
         """
         :returns: the absolute path to the Python virtual environment.
         """
-        return os.path.join(self.pipeline_home, self.pipeline, "pyspark", "venv")
+        return os.path.join(self.pipeline_home, self.pipeline, "venv")
 
     def venv_archive(self) -> str:
         """
         :returns: the absolute path to the Python virtual environment
         (aliased) archive. For example
-        /srv/airflow-platform_eng/your_project/pyspark/venv.tar.gz#venv
+        /srv/airflow-platform_eng/your_project/venv.tar.gz#venv
         """
         return os.path.join(
-            self.pipeline_home, self.pipeline, "pyspark", "venv.tar.gz#venv"
+            self.pipeline_home, self.pipeline, "venv.tar.gz#venv"
         )
 
     def properties(self) -> str:
