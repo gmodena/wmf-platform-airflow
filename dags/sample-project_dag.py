@@ -78,8 +78,8 @@ with open(pipeline_config) as config_file:
 
     # The execution order of t1 and t2 can be defined by appending them
     # to a tasks list.
-    tasks = [t1, t2]
-
+    #tasks = [t1, t2]
+    tasks = [t1, ]
     # generate_dag() will chain and execute tasks in sequence (t1 >> t2).
     # The generated dag is appended to the global dags namespace.
     globals()["sample-project"] = generate_dag(
