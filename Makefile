@@ -1,7 +1,7 @@
 include Makefile.python
 
 # A space (" ") separated list of projects to build and deploy.
-TARGETS = "image-matching"
+TARGETS = "image-matching sample-project"
 
 # Define Gitlab project paths
 branch := $(shell git rev-parse --abbrev-ref HEAD)
