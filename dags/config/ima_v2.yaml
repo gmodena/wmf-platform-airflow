@@ -1,0 +1,5 @@
+pipeline_home: '/srv/airflow-platform_eng'
+wikis: ['kowiki', ]
+hive_user_db: 'analytics_platform_eng'
+hdfs_imagerec: 'imagerec'
+hdfs_imagerec_prod: 'imagerec_prod'
