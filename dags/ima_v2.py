@@ -61,8 +61,7 @@ with open(pipeline_config) as config_file:
         except ValueError:
             raise AirflowFailException(ValueError)
 
-        validate_date(templates_dict={'snapshot': snapshot})
-    )
+    validate_date(templates_dict={'snapshot': snapshot})
 
     # Generate DAG tasks
     tasks = []
