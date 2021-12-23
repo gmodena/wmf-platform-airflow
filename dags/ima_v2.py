@@ -1,8 +1,8 @@
 """
-This DAG is reintepretation of ImageMatching implemented using
-Generated Data Platform helper classes and convention.
+This DAG is a reintepretation of ImageMatching implemented using
+Generated Data Platform helper classes and conventions.
 
-A image-matching dag created with our cookiecuter template
+An image-matching dag created with our cookiecuter template
 would look similar to this.
 
 Caveats:
