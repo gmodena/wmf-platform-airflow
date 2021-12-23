@@ -52,7 +52,7 @@ with open(pipeline_config) as config_file:
     # and produces some output.
     # The script should be provided in your project src module.
     pyspark_script = os.path.join(
-        config["pipeline_home"], "pyspark/", "src", "transform.py"
+        config["pipeline_home"], "{{cookiecutter.pipeline_directory}}", "pyspark/", "src", "transform.py"
     )
 
     # You should specify the HDFS directory
@@ -73,7 +73,7 @@ with open(pipeline_config) as config_file:
     )
 
     # You can also declare a SparkSqlTask that executes a Hive query.
-    sql_script = os.path.join(config["pipeline_home"], "sql", "query.sql")
+    sql_script = os.path.join(config["pipeline_home"], "{{cookiecutter.pipeline_directory}}", "sql", "query.sql")
     t2 = SparkSqlTask(filename=sql_script, config=spark_config)
 
     # The execution order of t1 and t2 can be defined by appending them

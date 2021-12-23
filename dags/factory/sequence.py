@@ -139,7 +139,7 @@ class PySparkTask(Task):
         return BashOperator(
             task_id=os.path.basename(self.main),
             bash_command=f"PYSPARK_PYTHON=./venv/bin/python "
-            f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/python spark2-submit "
+            f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/bin/python spark2-submit "
             f"{self.config.properties()} "
             f"--archives {self.config.venv_archive()} "
             "--conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' "
