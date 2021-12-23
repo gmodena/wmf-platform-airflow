@@ -1,8 +1,0 @@
-{
-  "cookiecutter": {
-    "pipeline_name": "sample-project",
-    "pipeline_directory": "sample-project",
-    "pipeline_owner": "Luke Bowmaker",
-    "_template": "datapipeline-scaffold"
-  }
-}
