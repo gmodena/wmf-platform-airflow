@@ -77,7 +77,7 @@ def test_pyspark_task(mocker):
         w
         for w in (
             "PYSPARK_PYTHON=./venv/bin/python ",
-            "PYSPARK_DRIVER_PYTHON=pipeline_home/test_pipeline/venv/python ",
+            "PYSPARK_DRIVER_PYTHON=pipeline_home/test_pipeline/venv/bin/python ",
             "spark2-submit ",
             "--conf 'spark.master=yarn' ",
             "--conf 'spark.driver.memory=2g' ",
