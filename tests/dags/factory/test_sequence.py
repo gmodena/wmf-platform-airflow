@@ -36,7 +36,7 @@ def test_spark_config():
     Test that spark configuration boilerplate
     is created according to convention.
     """
-    venv_base_path = os.path.join(pipeline_home, pipeline_name, "pyspark")
+    venv_base_path = os.path.join(pipeline_home, pipeline_name)
     spark_config = SparkConfig(pipeline=pipeline_name, pipeline_home=pipeline_home)
     assert spark_config
     assert spark_config.venv() == os.path.join(venv_base_path, "venv")
@@ -77,11 +77,11 @@ def test_pyspark_task(mocker):
         w
         for w in (
             "PYSPARK_PYTHON=./venv/bin/python ",
-            "PYSPARK_DRIVER_PYTHON=pipeline_home/test_pipeline/pyspark/venv/python ",
+            "PYSPARK_DRIVER_PYTHON=pipeline_home/test_pipeline/venv/bin/python ",
             "spark2-submit ",
             "--conf 'spark.master=yarn' ",
             "--conf 'spark.driver.memory=2g' ",
-            "--archives pipeline_home/test_pipeline/pyspark/venv.tar.gz#venv ",
+            "--archives pipeline_home/test_pipeline/venv.tar.gz#venv ",
             "--conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' ",
             "--conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' ",
             "somejob.py  ",
