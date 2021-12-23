@@ -76,7 +76,7 @@ with DAG(
 
     generate_spark_config = BashOperator(
         task_id='generate_spark_config',
-        bash_command=f'cat {image_suggestion_dir}/conf/spark.properties.template /usr/lib/spark2/conf/spark-defaults.conf > {spark_config}'
+        bash_command=f'cat {image_suggestion_dir}/conf/spark.properties /usr/lib/spark2/conf/spark-defaults.conf > {spark_config}'
     )
 
     # TODO: Look into SparkSubmitOperator
