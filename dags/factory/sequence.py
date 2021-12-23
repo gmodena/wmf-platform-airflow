@@ -7,6 +7,7 @@ from datetime import timedelta
 from pathlib import Path
 from typing import List, Optional
 
+import uuid
 import yaml
 
 from airflow import DAG
@@ -123,10 +124,10 @@ class PySparkTask(Task):
     """
 
     main: str
-    input_path: str
-    output_path: str
     config: SparkConfig
     pyspark_main_args: Optional[str] = ""
+    input_path: Optional[str] = ""
+    output_path: Optional[str] = ""
 
     def operator(self, dag: Optional[DAG] = None) -> BashOperator:
         """
@@ -137,7 +138,7 @@ class PySparkTask(Task):
         :returns: a BashOperator that runs spark-submit.
         """
         return BashOperator(
-            task_id=os.path.basename(self.main),
+            task_id=f"{os.path.basename(self.main)}-{str(uuid.uuid4())[0:5]}",
             bash_command=f"PYSPARK_PYTHON=./venv/bin/python "
             f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/bin/python spark2-submit "
             f"{self.config.properties()} "
@@ -178,7 +179,7 @@ class SparkSqlTask(Task):
         :returns: a BashOperator that runs spark-sql.
         """
         return BashOperator(
-            task_id=os.path.basename(self.filename),
+            task_id=f"{os.path.basename(self.filename)}-{str(uuid.uuid4())[0:5]}",
             bash_command=f"spark2-sql "
             f"{self.config.properties()} "
             "--deploy-mode client "
