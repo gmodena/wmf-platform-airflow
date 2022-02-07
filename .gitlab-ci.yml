@@ -1,0 +1,41 @@
+# This is a Giltab CI pipeline for the datapiples monorepo.
+#
+# Analytics infra vendors Python via the Anaconda distribution.
+# We depend on the public miniconda3 docker image. 
+image: "continuumio/miniconda3"
+
+# TODO(gmodena): Install a set of runtime deps for test jobs.
+#				 These commands are executed before each job, and are rather wasteful.
+#				 We should publish our own image with all build deps satisfied.
+before_script:
+  - conda install -c conda-forge make
+  - conda install python=3.7 openjdk=8.0.152
+  - pip install tox==3.24.4 cookiecutter==1.7.3
+
+# Jobs within a stage are executed in parallel.
+stages:
+  - test
+
+# Run unit tests for all onboared projects.
+unit-test-job:
+  stage: test
+  script:
+    - make test-all SKIP_DOCKER=true
+
+# Run linting for all onboarded projects.
+lint-test-job:
+  stage: test  
+  script:
+    - make lint-all SKIP_DOCKER=true
+
+# Run type checking (mypy) for all onboarded projects.
+typecheck-test-job:
+  stage: test
+  script:
+    - make mypy-all SKIP_DOCKER=true
+
+# Run validation for all DAGs in the airflow module.
+dagvalidation-test-job:
+  stage: test
+  script:
+    - make test-dags SKIP_DOCKER=true
