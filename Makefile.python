@@ -6,7 +6,6 @@ pip_requirements := requirements.txt
 pip_requirements_test := requirements-test.txt
 conda_python_version = 3.7
 pyspark_version = 2.4.5
-extra_pypi := https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
 
 CONDA_CMD := conda config --set pip_interop_enabled True; \
 	conda create -n ${venv} python=${conda_python_version}; \
@@ -36,7 +35,7 @@ docker-conda:
 	
 venv:	${pip_requirements}
 	${DOCKER_CMD} bash -c "export CONDA_ALWAYS_YES=true; ${CONDA_CMD}; \
-							pip install --extra-index-url ${extra_pypi} -r ${pip_requirements}; \
+							pip install -r ${pip_requirements}; \
 							conda deactivate; \
 							conda install conda-pack; \
 							conda-pack -n ${venv} --format ${venv_archive_format}"
