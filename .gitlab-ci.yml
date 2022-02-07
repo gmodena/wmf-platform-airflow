@@ -15,6 +15,7 @@ before_script:
 # Jobs within a stage are executed in parallel.
 stages:
   - test
+  - publish
 
 # Run unit tests for all onboared projects.
 unit-test-job:
@@ -39,3 +40,12 @@ dagvalidation-test-job:
   stage: test
   script:
     - make test-dags SKIP_DOCKER=true
+
+# Publish datapipelines to Gitlab generic repo.
+# This is an optional step that must be triggered manually.
+publish-datapipelines:
+  stage: publish
+  when: manual
+  script:
+    - make archive SKIP_DOCKER=true
+    - 'curl -v --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file datapipelines.tar.gz "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/platform-airflow-dags/${CI_COMMIT_REF_NAME}-${CI_COMMIT_SHORT_SHA}/datapipelines.tar.gz"'
