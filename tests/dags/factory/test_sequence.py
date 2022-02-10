@@ -89,8 +89,19 @@ def test_pyspark_task(mocker):
             "/path/to/hdfs/output ",
         )
     )
-    print(bash_command)
     assert task.bash_command == bash_command
+    assert task.task_id == "somejob.py"
+
+    # Setup a task with a user provided task_id
+    task = PySparkTask(
+        main="somejob.py",
+        input_path="/path/to/hdfs/input",
+        output_path="/path/to/hdfs/output",
+        config=spark_config,
+        task_id="my-task-id",
+    ).operator()
+
+    task.task_id == "my-task-id"
 
 
 def test_sparksql_task(mocker):
@@ -124,14 +135,20 @@ def test_sparksql_task(mocker):
         )
     )
     assert task.bash_command == bash_command
+    assert task.task_id == "somequery.hql"
+
+    # Setup a task with a user provided task_id
+    task = SparkSqlTask(
+        filename="somequery.hql", config=spark_config, task_id="my-task-id"
+    ).operator()
+    assert task.task_id == "my-task-id"
 
 
 def test_generate_dag(mocker):
     """
     Test DAG generation boilerplate.
     """
-    spark_config = SparkConfig(
-            pipeline=pipeline_name, pipeline_home=pipeline_home)
+    spark_config = SparkConfig(pipeline=pipeline_name, pipeline_home=pipeline_home)
 
     t1 = PySparkTask(
         main="job1.py",
@@ -153,7 +170,6 @@ def test_generate_dag(mocker):
     )
 
     dag_args = {"start_date": "2022-01-01"}
-    dag = generate_dag(
-            pipeline=pipeline_name, tasks=[t1, t2, t3], dag_args=dag_args)
+    dag = generate_dag(pipeline=pipeline_name, tasks=[t1, t2, t3], dag_args=dag_args)
     assert isinstance(dag, DAG)
     check_cycle(dag)
