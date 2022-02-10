@@ -106,9 +106,6 @@ class Task(abc.ABC):
     """
     Task interface for configuration dataclasses
     """
-
-    task_id: Optional[str]
-
     @abc.abstractmethod
     def operator(self, dag: Optional[DAG] = None) -> BaseOperator:
         """
@@ -117,10 +114,10 @@ class Task(abc.ABC):
         """
         pass
 
-    def get_task_id_or(self, fallback: str) -> str:
-        task_id_ = self.task_id
+    def get_task_id_or(self, task_id: str) -> str:
+        task_id_ = self.task_id if self.task_id else None
         if not task_id_:
-            task_id_ = fallback
+            task_id_ = task_id
         return task_id_
 
 
