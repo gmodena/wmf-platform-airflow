@@ -76,14 +76,14 @@ with open(pipeline_config) as config_file:
     update_imagerec_table = SparkSqlTask(filename=f"{ima_home}/sql/external_imagerec.hql",
             hiveconf_args=f"-hiveconf username={username} -hiveconf database={hive_user_db}", config=spark_config)
 
-    tasks.append(update_imagerec_table)
-
     for wiki in wikis:
         algo_run = PySparkTask(
                 main=f"{ima_home}/venv/bin/algorithm.py",
                 pyspark_main_args=f"{snapshot} {wiki}",
                 config=spark_config)
         tasks.append(algo_run)
+
+    tasks.append(update_imagerec_table)
 
     # Generate production data
     generate_production_data = PySparkTask(
