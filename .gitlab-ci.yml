@@ -1,47 +1,58 @@
-# This is a Giltab CI pipeline for the datapiples monorepo.
+# This file is a template, and might need editing before it works on your project.
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
 #
-# Analytics infra vendors Python via the Anaconda distribution.
-# We depend on the public miniconda3 docker image. 
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
 image: "continuumio/miniconda3"
 
-# TODO(gmodena): Install a set of runtime deps for test jobs.
-#				 These commands are executed before each job, and are rather wasteful.
-#				 We should publish our own image with all build deps satisfied.
 before_script:
   - conda install -c conda-forge make
   - conda install python=3.7 openjdk=8.0.152
   - pip install tox==3.24.4 cookiecutter==1.7.3
 
-# Jobs within a stage are executed in parallel.
-stages:
+# Parallelize the execution of CI checks (per project).
+.build_matrix:
+  parallel:
+    matrix:
+      - datapipeline: [image-matching, sample-project]
+
+stages:          # List of stages for jobs, and their order of execution
   - test
   - publish
 
-# Run unit tests for all onboared projects.
-unit-test-job:
-  stage: test
+unit-test-job:   # This job runs in the test stage.
+  stage: test    # It only starts when the job in the build stage completes successfully.
+  parallel: !reference [.build_matrix, parallel]
   script:
-    - make test-all SKIP_DOCKER=true
+    - cd ${datapipeline}; make test SKIP_DOCKER=true
 
-# Run linting for all onboarded projects.
-lint-test-job:
-  stage: test  
+lint-test-job:   # This job also runs in the test stage.
+  stage: test    # It can run at the same time as unit-test-job (in parallel).
+  parallel: !reference [.build_matrix, parallel]
   script:
-    - make lint-all SKIP_DOCKER=true
+    - cd ${datapipeline}; make lint SKIP_DOCKER=true
 
-# Run type checking (mypy) for all onboarded projects.
-typecheck-test-job:
-  stage: test
+typecheck-test-job:   # This job also runs in the test stage.
+  stage: test    # It can run at the same time as unit-test-job (in parallel).
+  parallel: !reference [.build_matrix, parallel]
   script:
-    - make mypy-all SKIP_DOCKER=true
+    - cd ${datapipeline}; make mypy SKIP_DOCKER=true
 
-# Run validation for all DAGs in the airflow module.
-dagvalidation-test-job:
-  stage: test
+dagvalidation-test-job:   # This job also runs in the test stage.
+  stage: test    # It can run at the same time as unit-test-job (in parallel).
   script:
     - make test-dags SKIP_DOCKER=true
 
-# Publish datapipelines to Gitlab generic repo.
+# Publish datapipelines to a Gitlab Generic repo.
 # This is an optional step that must be triggered manually.
 publish-datapipelines:
   stage: publish
