@@ -76,9 +76,7 @@ class SparkConfig:
         (aliased) archive. For example
         /srv/airflow-platform_eng/your_project/venv.tar.gz#venv
         """
-        return os.path.join(
-            self.pipeline_home, self.pipeline, "venv.tar.gz#venv"
-        )
+        return os.path.join(self.pipeline_home, self.pipeline, "venv.tar.gz#venv")
 
     def properties(self) -> str:
         """
@@ -116,6 +114,12 @@ class Task(abc.ABC):
         """
         pass
 
+    def get_task_id_or(self, task_id: str) -> str:
+        task_id_ = self.task_id if self.task_id else None
+        if not task_id_:
+            task_id_ = task_id
+        return task_id_
+
 
 @dataclass
 class PySparkTask(Task):
@@ -128,6 +132,7 @@ class PySparkTask(Task):
     pyspark_main_args: Optional[str] = ""
     input_path: Optional[str] = ""
     output_path: Optional[str] = ""
+    task_id: Optional[str] = ""
 
     def operator(self, dag: Optional[DAG] = None) -> BashOperator:
         """
@@ -138,7 +143,7 @@ class PySparkTask(Task):
         :returns: a BashOperator that runs spark-submit.
         """
         return BashOperator(
-            task_id=f"{os.path.basename(self.main)}-{str(uuid.uuid4())[0:5]}",
+            task_id=self.get_task_id_or(os.path.basename(self.main)),
             bash_command=f"PYSPARK_PYTHON=./venv/bin/python "
             f"PYSPARK_DRIVER_PYTHON={self.config.venv()}/bin/python spark2-submit "
             f"{self.config.properties()} "
@@ -163,6 +168,7 @@ class SparkSqlTask(Task):
     config: SparkConfig
     filename: Path
     hiveconf_args: Optional[str] = ""
+    task_id: Optional[str] = ""
 
     def operator(self, dag: Optional[DAG] = None) -> BashOperator:
         """
@@ -179,7 +185,7 @@ class SparkSqlTask(Task):
         :returns: a BashOperator that runs spark-sql.
         """
         return BashOperator(
-            task_id=f"{os.path.basename(self.filename)}-{str(uuid.uuid4())[0:5]}",
+            task_id=self.get_task_id_or(os.path.basename(self.filename)),
             bash_command=f"spark2-sql "
             f"{self.config.properties()} "
             "--deploy-mode client "
