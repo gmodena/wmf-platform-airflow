@@ -101,5 +101,5 @@ with open(pipeline_config) as config_file:
 
     tasks.append(update_imagerec_prod_table)
 
-    dag = generate_dag(pipeline='imagimage-matching-v2_dag', tasks=tasks, dag_args=default_args)
+    dag = generate_dag(pipeline='image-matching-v2_dag', tasks=tasks, dag_args=default_args)
     globals()['image-matching-v2_dag'] = dag
