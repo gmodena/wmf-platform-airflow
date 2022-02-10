@@ -100,7 +100,7 @@ with DAG(
     for wiki in wikis:
         algo_run = BashOperator(
             task_id=f'run_algorithm_for_{wiki}',
-            bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python
+            bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python \
             spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv \
                     --conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' --conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' \
                     {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}"
