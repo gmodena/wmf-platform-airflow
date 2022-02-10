@@ -80,7 +80,8 @@ with open(pipeline_config) as config_file:
         algo_run = PySparkTask(
                 main=f"{ima_home}/venv/bin/algorithm.py",
                 pyspark_main_args=f"{snapshot} {wiki}",
-                config=spark_config)
+                config=spark_config,
+                task_id=f"run_algorithm_for_{wiki}")
         tasks.append(algo_run)
 
     tasks.append(update_imagerec_table)
