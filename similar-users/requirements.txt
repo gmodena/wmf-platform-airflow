@@ -1,6 +1,0 @@
-apache-airflow==2.1.0
-apache-airflow-providers-papermill==1.0.2
-jupyter==1.0.0
-pytest-flask==1.1.0
-Flask-SQLAlchemy==2.4.4
-PyYAML==5.4
