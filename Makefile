@@ -14,7 +14,7 @@ gitlab_project_id := 56
 gitlab_project_name := platform-airflow-dags
 gitlab_package_version := ${branch}-${short_commit_hash}
 gitlab_ci_api_root := https://gitlab.wikimedia.org/api/v4
-gitlab_package_archive := platform-airflow-dags.tar.gz
+gitlab_package_archive := datapipelines.tar.gz
 platform_airflow_dags_url := ${gitlab_ci_api_root}/projects/${gitlab_project_id}/packages/generic/${gitlab_project_name}/${gitlab_package_version}/${gitlab_package_archive}
 
 ifneq ($(SKIP_DOCKER),true)
