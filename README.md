@@ -1,10 +1,11 @@
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
-# platform-airflow-dags
+# datapipelines
 
 This repo contains data pipelines operationalised by the Generated Data Platform team.
 You can reach out to us at
-* https://www.mediawiki.org/wiki/Platform_Engineering_Team/Data_Value_Stream
+* Wiki: [Generated Data Platform](https://www.mediawiki.org/wiki/Platform_Engineering_Team/Data_Value_Stream).
+* Phabricator: [Generated Data Platform](https://phabricator.wikimedia.org/project/view/5517/).
 * Slack: [#data-platform-value-stream](https://wikimedia.slack.com/archives/C02BB8L2S5R).
 
 # Requirements
@@ -27,8 +28,8 @@ Data pipelines are executed on Hadoop. Elastic compute is provided by Spark (job
 Clone this repo and create a dev branch with:
 
 ```
-git@gitlab.wikimedia.org:gmodena/platform-airflow-dags.git
-cd platform-airflow-dag
+git@gitlab.wikimedia.org:/repos/generated-data-platform/datapipelines.git
+cd datapipelines
 git checkout -b your_data_pipeline_branchname
 ```
 
