@@ -1,5 +1,0 @@
-ima_home: = "/srv/airflow-platform_eng/image-matching"
-run_id: = "8419345a-3404-4a7c-93e1-b9e6813706ff"
-image_suggestion_dir: f"/srv/airflow-platform_eng/image-matching/"
-snapshot: "2021-09-08"
-hive_user_db: "analytics_platform_eng"

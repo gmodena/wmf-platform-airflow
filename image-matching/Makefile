@@ -1,6 +1,15 @@
-SHELL := /bin/bash
+python_dir := pyspark
 
-include ../Makefile.python
-ifneq ($(SKIP_DOCKER),true)
-DOCKERFILE := ../Dockerfile.python
-endif
+venv:
+	test ${python_dir}/venv.tar.gz || rm ${python_dir}/venv.tar.gz; \
+	test -d ${python_dir}/venv || rm -r ${python_dir}/venv; \
+	make venv -C ${python_dir}; mv ${python_dir}/venv.tar.gz .
+test:
+	make test -C pyspark
+
+lint:
+	make lint -C pyspark
+
+mypy:
+	make mypy -C pyspark
+

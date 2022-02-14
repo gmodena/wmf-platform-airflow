@@ -1,4 +1,0 @@
--i https://gitlab.wikimedia.org/api/v4/projects/40/packages/pypi/simple
-algorunner
-pandas==1.3.3
-numpy==1.21.2
