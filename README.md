@@ -1,14 +1,10 @@
-[![Project Status: Concept <E2><80><93> Minimal or no implementation has been done yet, or the repository is only intended to be a limited example, demo, or proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
-[![build](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml/badge.svg)](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml)
-
-
+[![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](https://www.repostatus.org/badges/latest/wip.svg)](https://www.repostatus.org/#wip)
 
 # platform-airflow-dags
 
 This repo contains data pipelines operationalised by the Generated Data Platform team.
 You can reach out to us at
-* TODO: Add wikitech url
-* TODO: Add irc channel
+* https://www.mediawiki.org/wiki/Platform_Engineering_Team/Data_Value_Stream
 * Slack: [#data-platform-value-stream](https://wikimedia.slack.com/archives/C02BB8L2S5R).
 
 # Requirements
@@ -93,8 +89,13 @@ DAG validation tests live under the toplevel `tests` directory. They can be trig
 
 ### Project checks
 
-The following commands can be executed at top level (they'll be invoked for all projects),
-or inside a single project directory (they'll be triggered for that project only):
+The following commands can be executed at top level (they'll be invoked for all projects):
+
+* `make lint-all` triggers project linting.
+* `make mypy-all` triggers type checking.
+* `mate test-all` triggers unit/integration tests.
+
+Code checks can be triggered for a specific project:
 
 * `make lint` triggers project linting.
 * `make mypy` triggers type checking.
@@ -108,7 +109,3 @@ Python](https://docs.conda.io/en/latest/) distribution. They can be run "nativel
 make test SKIP_DOCKER=true
 ```
 
-## CI
-
-This project does not currently have Gitlab runners available. As an ad interim solution,
-we mirror to Github an run CI atop a `build` Action https://github.com/gmodena/wmf-platform-airflow-dags/actions. `build` is triggered on every push to any branch.
