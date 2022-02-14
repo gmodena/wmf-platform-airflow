@@ -76,13 +76,17 @@ with DAG(
 
     generate_spark_config = BashOperator(
         task_id='generate_spark_config',
-        bash_command=f'cat {image_suggestion_dir}/conf/spark.properties.template /usr/lib/spark2/conf/spark-defaults.conf > {spark_config}'
+        bash_command=f'cat {image_suggestion_dir}/conf/spark.properties /usr/lib/spark2/conf/spark-defaults.conf > {spark_config}'
     )
 
     # TODO: Look into SparkSubmitOperator
     generate_placeholder_images = BashOperator(
         task_id='generate_placeholder_images',
-        bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file /srv/airflow-platform_eng/image-matching/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/placeholder_images.py {snapshot}'
+        bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit \
+                --properties-file /srv/airflow-platform_eng/image-matching/runs/{run_id}/regular.spark.properties \
+                --archives {ima_home}/venv.tar.gz#venv \
+                --conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' --conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' \
+                {ima_home}/venv/bin/placeholder_images.py {snapshot}"
     )
 
     # Update hive external table metadata
@@ -96,7 +100,10 @@ with DAG(
     for wiki in wikis:
         algo_run = BashOperator(
             task_id=f'run_algorithm_for_{wiki}',
-            bash_command=f'PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}'
+            bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python \
+            spark2-submit --properties-file {ima_home}/runs/{run_id}/regular.spark.properties --archives {ima_home}/venv.tar.gz#venv \
+                    --conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' --conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' \
+                    {ima_home}/venv/bin/algorithm.py {snapshot} {wiki}"
         )
 
         # Link tasks
@@ -107,12 +114,15 @@ with DAG(
     hdfs_imagerec_prod = f'/user/{username}/imagerec_prod'
     generate_production_data = BashOperator(
         task_id='generate_production_data',
-        bash_command=f'spark2-submit --properties-file {spark_config} --files {image_suggestion_dir}/spark/schema.py \
-                    {image_suggestion_dir}/spark/transform.py \
+        bash_command=f"PYSPARK_PYTHON=./venv/bin/python PYSPARK_DRIVER_PYTHON={ima_home}/venv/bin/python \
+                spark2-submit --properties-file {spark_config} \
+                    --archives {ima_home}/venv.tar.gz#venv \
+                    --conf 'spark.yarn.appMasterEnv.PYSPARK_DRIVER_PYTHON=./venv/bin/python' --conf 'spark.yarn.appMasterEnv.PYSPARK_PYTHON=./venv/bin/python' \
+                    {image_suggestion_dir}/pyspark/src/transform.py \
                     --snapshot {monthly_snapshot} \
                     --source {hdfs_imagerec} \
                     --destination {hdfs_imagerec_prod} \
-                    --dataset-id {run_id}'
+                    --dataset-id {run_id}"
     )
 
     # Update hive external production metadata
