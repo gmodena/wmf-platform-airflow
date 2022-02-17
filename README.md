@@ -15,10 +15,10 @@ git remote set-url origin git@gitlab.wikimedia.org:repos/generated-data-platform
 
 You rebase on the origin with
 ```
-git pull origin main
+git fetch origin
 ```
 and
 ```
-git rebase main
+git rebase origin/main
 ```
 
