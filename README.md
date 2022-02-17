@@ -1,14 +1,10 @@
-[![Project Status: Concept <E2><80><93> Minimal or no implementation has been done yet, or the repository is only intended to be a limited example, demo, or proof-of-concept.](https://www.repostatus.org/badges/latest/concept.svg)](https://www.repostatus.org/#concept)
-[![build](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml/badge.svg)](https://github.com/gmodena/wmf-platform-airflow-dags/actions/workflows/build.yml)
-
-
-
 # platform-airflow-dags
 
-This repo used to contain experiments and spike work for data pipelines tooling provided by the Generated Data Platform
+This repo used to contain experiments and spike work for data pipeline tooling provided by the [Generated Data
+Platform](https://gitlab.wikimedia.org/repos/generated-data-platform/)
 team. This software is currently not maintained, and archived for historical reasons.
 
-The project has been rebranded to better capture its new scope, and has now moved to https://gitlab.wikimedia.org/repos/generated-data-platform/datapipelines.
+The project has been rebranded to better capture its new scope, and has moved to https://gitlab.wikimedia.org/repos/generated-data-platform/datapipelines.
 
 ## Migrate to the new repo
 
@@ -23,6 +19,6 @@ git pull origin main
 ```
 and
 ```
-git rebase origin/main
+git rebase main
 ```
 
